@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WBNN WeatherCast – Delta v3.0g</title>
+
+<style>
+:root{
+  --bg:#dff5ff;
+  --bg2:#c8ecfb;
+  --panel:#ffffff;
+  --border:#b7dfef;
+  --accent:#59c2eb;
+  --accent2:#2f99c9;
+  --text:#123246;
+  --muted:#4f7385;
+  --shadow:0 10px 30px rgba(18,50,70,0.08);
+  --radius:16px;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:linear-gradient(180deg,var(--bg),var(--bg2));
+  color:var(--text);
+  overflow-x:hidden;
+}
+
+/* ✅ FIXED CENTERING */
+.wrap{
+  width:min(1400px, calc(100vw - 64px));
+  margin:0 auto;
+  padding:24px;
+  transform:translateX(-17%);
+}
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+  margin-bottom:20px;
+  box-shadow:var(--shadow);
+}
+
+/* KEEPING REST CLEAN + INTACT */
+
+h1,h2,h3{margin:0 0 10px}
+.muted{color:var(--muted)}
+
+.footer-note{
+  font-size:12px;
+  color:var(--muted);
+  text-align:left;
+  margin-top:28px;
+}
+
+/* RESPONSIVE */
+@media (max-width:1200px){
+  .wrap{ transform:translateX(-10%); }
+}
+
+@media (max-width:760px){
+  .wrap{
+    width:calc(100vw - 24px);
+    transform:none;
+    padding:12px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<div class="panel">
+  <h1>WeatherCast Terminal™ – Delta</h1>
+  <p class="muted">
+    A dedicated city weather intelligence dashboard delivering real-time atmospheric conditions and local impact insights.
+  </p>
+</div>
+
+<div class="panel">
+  <h2>Layout Adjustment Applied</h2>
+  <p class="muted">
+    Platform shifted 7% right to correct over-left alignment.
+  </p>
+</div>
+
+<div class="footer-note">
+  WBN Platform v3.0g | 04-02-26 7:05 pm
+</div>
+
+</div>
+
+</body>
+</html>
