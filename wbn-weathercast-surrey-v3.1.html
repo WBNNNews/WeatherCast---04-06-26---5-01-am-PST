@@ -1,0 +1,2055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WBNN WeatherCast – Surrey v3.1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Source+Code+Pro:wght@400;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── WBN Style Guide v3.1 tokens ── */
+    :root {
+      --robin:       #59c2eb;
+      --robin-dark:  #1f8db8;
+      --robin-deep:  #1a7aaa;
+      --robin-dim:   #b7dfef;
+      --robin-faint: #eef9fe;
+      --robin-line:  #c8ecfb;
+
+      --bg1:    #dff5ff;
+      --bg2:    #c8ecfb;
+      --panel1: #ffffff;
+      --panel2: #eaf8fe;
+
+      --text:  #123246;
+      --muted: #426679;
+
+      --success:    #13795b;
+      --warning:    #9a6700;
+      --danger:     #a61b1b;
+      --success-bg: #e8f7ee;
+      --warning-bg: #fff5e8;
+      --danger-bg:  #fdf0f0;
+
+      --shadow: 0 10px 30px rgba(18,50,70,.08);
+      --radius: 18px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, var(--bg1), var(--bg2));
+      color: var(--text);
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* ── Shell wrap ── */
+    .wrap {
+      width: min(1400px, calc(100vw - 48px));
+      margin: 0 auto;
+      padding: 24px 0;
+    }
+
+    /* ── Panels ── */
+    .panel {
+      background: linear-gradient(180deg, var(--panel1), var(--panel2));
+      border: 1px solid var(--robin-dim);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel-body { padding: 20px; }
+
+    /* Frosted panel header */
+    .panel-header {
+      background: rgba(255,255,255,.58);
+      border-bottom: 1px solid var(--robin-dim);
+      padding: 14px 20px;
+    }
+
+    /* ── Hero ── */
+    .hero { background: linear-gradient(135deg, rgba(89,194,235,.14), rgba(255,255,255,.97)); }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .eyebrow {
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--robin-dark);
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    h1 {
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: 34px;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      margin: 0 0 10px;
+      line-height: 1.15;
+      color: var(--text);
+    }
+
+    h2 { margin: 0 0 4px; font-size: 18px; font-weight: 700; line-height: 1.2; }
+    h3 { margin: 0 0 10px; font-size: 16px; font-weight: 700; line-height: 1.2; }
+    h4 { margin: 0 0 8px; font-size: 14px; font-weight: 700; }
+    p  { line-height: 1.5; margin: 0 0 12px; }
+
+    .muted  { color: var(--muted); }
+    .small  { font-size: 12px; color: var(--muted); }
+    .tiny   { font-size: 11px; color: var(--muted); }
+    .mono   { font-family: 'Source Code Pro', monospace; }
+
+    /* ── Status bar ── */
+    .status-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+
+    .status-pill {
+      background: var(--robin-faint);
+      border: 1px solid var(--robin-dim);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .badge-d {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: var(--robin-dark);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      vertical-align: middle;
+      margin-left: 6px;
+    }
+
+    /* ── Live ticker ── */
+    .live-strip {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid var(--robin-dim);
+      background: linear-gradient(180deg, #fff, var(--robin-faint));
+      border-radius: 14px;
+      padding: 11px 16px;
+      margin-top: 16px;
+      overflow: hidden;
+    }
+
+    .live-label {
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--robin-dark);
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      flex: 0 0 auto;
+    }
+
+    .ticker-viewport {
+      min-width: 0;
+      overflow: hidden;
+      width: 100%;
+      position: relative;
+      height: 22px;
+    }
+
+    .ticker-track {
+      display: inline-block;
+      white-space: nowrap;
+      will-change: transform;
+      animation: tickerScroll 32s linear infinite;
+      padding-left: 100%;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    @keyframes tickerScroll {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-100%); }
+    }
+
+    /* ── Section heads ── */
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .section-head-left  { min-width: 0; flex: 1 1 auto; }
+    .section-head-right { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    /* Partner tag */
+    .partner-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--robin-dim);
+      background: var(--robin-faint);
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .partner-tag a { color: var(--robin-dark); text-decoration: none; font-weight: 700; }
+
+    /* ── Grids ── */
+    .grid   { display: grid; gap: 16px; }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .grid-3 { grid-template-columns: repeat(3,1fr); }
+    .grid-4 { grid-template-columns: repeat(4,1fr); }
+    .grid-6 { grid-template-columns: repeat(6,1fr); }
+
+    /* ── Cards ── */
+    .metric-card,
+    .info-card,
+    .impact-card,
+    .timeline-item,
+    .forecast-day,
+    .micro-card,
+    .partner-card,
+    .admin-card,
+    .alert-box,
+    .decision-card {
+      border: 1px solid var(--robin-dim);
+      border-radius: 16px;
+      padding: 16px;
+      background: linear-gradient(180deg, #fff, var(--panel2));
+    }
+
+    /* ── Labels (Oswald) ── */
+    .metric-label {
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--robin-dark);
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      margin-bottom: 8px;
+    }
+
+    .metric-value {
+      font-size: 34px;
+      font-weight: 700;
+      letter-spacing: -.03em;
+      margin-bottom: 6px;
+    }
+
+    .metric-sub { font-size: 13px; color: var(--muted); }
+
+    /* ── Brief box ── */
+    .brief-box {
+      border: 1px solid var(--robin-dim);
+      background: linear-gradient(180deg, #fff, var(--robin-faint));
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    /* ── Decision panel ── */
+    .decision-lead {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 14px;
+      line-height: 1.45;
+    }
+
+    .decision-grid { display: grid; grid-template-columns: 1.2fr .9fr .9fr .8fr; gap: 14px; }
+
+    .decision-list { margin: 0; padding-left: 18px; color: var(--text); }
+    .decision-list li { margin: 0 0 10px; line-height: 1.45; font-size: 14px; }
+
+    .decision-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--robin-dim);
+      background: var(--robin-faint);
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      color: var(--robin-dark);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .decision-copy { color: var(--muted); line-height: 1.45; font-size: 14px; }
+
+    /* ── Impact ── */
+    .impact-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 14px; }
+
+    .impact-score { font-size: 24px; font-weight: 700; margin: 6px 0; }
+
+    .score-good { color: var(--success); }
+    .score-warn { color: var(--warning); }
+    .score-bad  { color: var(--danger); }
+
+    /* ── Timeline ── */
+    .timeline { display: grid; grid-template-columns: repeat(8,1fr); gap: 10px; overflow-x: auto; }
+    .timeline-item { min-width: 110px; text-align: center; }
+
+    /* ── Forecast ── */
+    .forecast-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 12px; }
+    .forecast-day .day   { font-family: 'Oswald', Arial, sans-serif; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--robin-dark); margin-bottom: 6px; }
+    .forecast-day .temps { font-size: 20px; font-weight: 700; margin: 8px 0; }
+
+    /* ── Map ── */
+    .map-toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+
+    .map-frame {
+      width: 100%;
+      height: 520px;
+      border: 1px solid var(--robin-dim);
+      border-radius: 16px;
+      overflow: hidden;
+      background: var(--robin-faint);
+    }
+
+    .map-frame iframe { width: 100%; height: 100%; border: 0; }
+
+    /* ── Buttons ── */
+    .tab-btn, .btn, .mini-btn {
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      font-family: Arial, Helvetica, sans-serif;
+      transition: background .15s, color .15s;
+    }
+
+    .tab-btn   { padding: 9px 14px;  font-size: 13px; border-radius: 12px; background: var(--robin); color: #fff; box-shadow: var(--shadow); }
+    .btn       { padding: 11px 18px; font-size: 14px; border-radius: 12px; background: var(--robin); color: #fff; box-shadow: var(--shadow); }
+    .mini-btn  { padding: 6px 10px;  font-size: 12px; border-radius: 10px; background: var(--robin); color: #fff; }
+
+    .tab-btn.secondary, .btn.secondary, .mini-btn.secondary {
+      background: var(--robin-faint);
+      color: var(--text);
+      border: 1px solid var(--robin-dim);
+      box-shadow: none;
+    }
+
+    .tab-btn:hover, .btn:hover       { background: var(--robin-dark); color: #fff; }
+    .tab-btn.secondary:hover, .btn.secondary:hover { background: var(--robin-line); }
+    .tab-btn.active { background: var(--robin-dark); }
+
+    /* ── Alerts ── */
+    .alerts-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .alert-tag {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .tag-good { background: var(--success-bg); color: var(--success); }
+    .tag-warn { background: var(--warning-bg); color: var(--warning); }
+    .tag-bad  { background: var(--danger-bg);  color: var(--danger); }
+
+    /* ── Micro ── */
+    .micro-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+
+    /* ── Partners ── */
+    .partner-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+
+    /* ── Forms ── */
+    .field { margin-bottom: 12px; }
+
+    .field label {
+      display: block;
+      margin-bottom: 6px;
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--robin-dark);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      width: 100%;
+      min-height: 44px;
+      font-size: 14px;
+      padding: 10px 12px;
+      border: 1px solid var(--robin-dim);
+      border-radius: 12px;
+      outline: none;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #fff;
+      color: var(--text);
+      transition: border-color .15s;
+    }
+
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus { border-color: var(--robin-dark); }
+
+    .field textarea { min-height: 110px; resize: vertical; }
+
+    /* ── Admin ── */
+    .admin-shell { display: none; }
+    .admin-shell.open { display: block; }
+
+    .admin-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 18px; }
+
+    .list-row {
+      border: 1px solid var(--robin-dim);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+      margin-bottom: 10px;
+    }
+
+    .row-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+    /* ── Footer ── */
+    .footer-note {
+      font-family: 'Source Code Pro', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      text-align: left;
+      margin-top: 28px;
+      padding: 0 4px;
+    }
+
+    /* ── Changelog ── */
+    .changelog { margin: 0; padding-left: 18px; }
+
+    .loader { color: var(--muted); font-size: 14px; }
+
+    /* ── Notice bar ── */
+    .notice {
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 1100px) {
+      .grid-2, .grid-3, .grid-4, .grid-6,
+      .forecast-grid, .impact-grid, .micro-grid,
+      .partner-grid, .alerts-wrap, .admin-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .timeline { grid-template-columns: repeat(4,1fr); }
+      .decision-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      .wrap { width: calc(100vw - 24px); padding: 12px 0; }
+      .grid-2, .grid-3, .grid-4, .grid-6,
+      .forecast-grid, .impact-grid, .micro-grid,
+      .partner-grid, .alerts-wrap, .admin-grid,
+      .decision-grid {
+        grid-template-columns: 1fr;
+      }
+      .timeline { grid-template-columns: repeat(2,1fr); }
+      .map-frame { height: 400px; }
+      .metric-value { font-size: 28px; }
+      .ticker-track { animation-duration: 20s; }
+      .decision-lead { font-size: 15px; }
+      h1 { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ═══ HERO ═══ -->
+  <div class="panel hero">
+    <div class="panel-body">
+      <div class="hero-top">
+        <div>
+          <span class="eyebrow">WBNN WeatherCast™</span>
+          <h1 id="heroTitle">WeatherCast Terminal™ – Surrey</h1>
+          <p id="heroSubtitle" class="muted" style="max-width:780px;font-size:15px;line-height:1.55;">
+            A dedicated city weather intelligence dashboard delivering real-time atmospheric conditions, forecasts, environmental signals, and city impact insights for Surrey, BC.
+          </p>
+          <div class="status-bar">
+            <div class="status-pill">Dynamic Weather Data <span class="badge-d">D</span></div>
+            <div class="status-pill" id="refreshStatus">Refreshing in 15:00</div>
+            <div class="status-pill" id="updatedStamp">Updated: --</div>
+            <div class="status-pill" id="sourceStamp">Source: Open-Meteo + Windy</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="live-strip">
+        <div class="live-label">WeatherCast – Surrey Update</div>
+        <div class="ticker-viewport">
+          <div class="ticker-track" id="tickerTrack">Loading live update…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ DECISION PANEL ═══ -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="section-head">
+        <div class="section-head-left">
+          <h2>Today's Decision Panel <span class="badge-d">D</span></h2>
+          <div class="small">A plain-language interpretation layer that turns today's weather into practical guidance.</div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="decision-lead" id="decisionLead">Generating today's decision summary…</div>
+      <div class="decision-grid">
+        <div class="decision-card">
+          <div class="metric-label">What To Do</div>
+          <ul class="decision-list" id="decisionActions"><li>Loading daily guidance…</li></ul>
+        </div>
+        <div class="decision-card">
+          <div class="decision-chip">Best Window</div>
+          <div class="decision-copy" id="decisionWindow">Checking the best time to be outside…</div>
+        </div>
+        <div class="decision-card">
+          <div class="decision-chip">Commute Note</div>
+          <div class="decision-copy" id="decisionCommute">Assessing likely travel friction…</div>
+        </div>
+        <div class="decision-card">
+          <div class="decision-chip">Forecast Confidence</div>
+          <div class="decision-copy" id="decisionConfidence">Calculating forecast confidence…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CONDITIONS ═══ -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="section-head">
+        <div class="section-head-left">
+          <h2>Surrey Conditions Panel <span class="badge-d">D</span></h2>
+          <div class="small">Live current conditions for Surrey, British Columbia.</div>
+        </div>
+        <div class="section-head-right">
+          <div class="partner-tag" id="tag-conditions"></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="grid grid-4">
+        <div class="metric-card">
+          <div class="metric-label">Temperature</div>
+          <div class="metric-value" id="tempNow">--°C</div>
+          <div class="metric-sub" id="conditionNow">Loading current conditions…</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Feels Like</div>
+          <div class="metric-value" id="feelsNow">--°C</div>
+          <div class="metric-sub" id="humidityNow">Humidity --%</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Wind</div>
+          <div class="metric-value" id="windNow">-- km/h</div>
+          <div class="metric-sub" id="windDirNow">Direction --</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Rain Risk</div>
+          <div class="metric-value" id="rainRiskNow">--%</div>
+          <div class="metric-sub" id="highLowNow">High / Low --° / --°</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ WEATHER BRIEF ═══ -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="section-head">
+        <div class="section-head-left">
+          <h2>Surrey Weather Brief <span class="badge-d">D</span></h2>
+          <div class="small">A plain-language interpretation of the data for Surrey readers.</div>
+        </div>
+        <div class="section-head-right">
+          <div class="partner-tag" id="tag-brief"></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="brief-box">
+        <p id="weatherBrief" class="muted">Loading forecast summary…</p>
+        <div class="grid grid-3" style="margin-top:14px;">
+          <div class="info-card">
+            <div class="metric-label">Sunrise / Sunset</div>
+            <div style="font-weight:700;" id="sunNow">-- / --</div>
+          </div>
+          <div class="info-card">
+            <div class="metric-label">UV Peak</div>
+            <div style="font-weight:700;" id="uvPeak">--</div>
+          </div>
+          <div class="info-card">
+            <div class="metric-label">Precipitation Today</div>
+            <div style="font-weight:700;" id="precipToday">-- mm</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ IMPACT READOUT ═══ -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="section-head">
+        <div class="section-head-left">
+          <h2>Surrey Impact Readout <span class="badge-d">D</span></h2>
+          <div class="small">A fast planning layer for commutes, jobsites, events, and outdoor use.</div>
+        </div>
+        <div class="section-head-right">
+          <div class="partner-tag" id="tag-impact"></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="impact-grid">
+        <div class="impact-card">
+          <div class="metric-label">Commute Risk</div>
+          <div class="impact-score" id="scoreCommute">Loading…</div>
+          <div class="tiny" id="textCommute">Assessing rain, visibility, and wind.</div>
+        </div>
+        <div class="impact-card">
+          <div class="metric-label">Outdoor Score</div>
+          <div class="impact-score" id="scoreOutdoor">Loading…</div>
+          <div class="tiny" id="textOutdoor">Checking comfort and dry windows.</div>
+        </div>
+        <div class="impact-card">
+          <div class="metric-label">Marine</div>
+          <div class="impact-score" id="scoreMarine">Loading…</div>
+          <div class="tiny" id="textMarine">Looking at wind and coastal exposure.</div>
+        </div>
+        <div class="impact-card">
+          <div class="metric-label">Air Quality</div>
+          <div class="impact-score score-warn" id="scoreAir">Watch</div>
+          <div class="tiny" id="textAir">Local AQI feed can be layered in later.</div>
+        </div>
+        <div class="impact-card">
+          <div class="metric-label">Event Readiness</div>
+          <div class="impact-score" id="scoreEvent">Loading…</div>
+          <div class="tiny" id="textEvent">Checking rain timing and temperature.</div>
+        </div>
+        <div class="impact-card">
+          <div class="metric-label">Construction</div>
+          <div class="impact-score" id="scoreBuild">Loading…</div>
+          <div class="tiny" id="textBuild">Watching rain and wind disruption risk.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TIMELINE ═══ -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="section-head">
+        <div class="section-head-left">
+          <h2>Today Timeline View <span class="badge-d">D</span></h2>
+          <div class="small">How the day unfolds hour by hour — rain timing, wind shifts, and usable outdoor windows.</div>
+        </div>
+        <div class="section-head-right">
+          <div class="partner-tag" id="tag-timeline"></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="timeline" id="timelineWrap">
+        <div class="timeline-item loader">Loading timeline…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ RADAR MAP ═══ -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="section-head">
+        <div class="section-head-left">
+          <h2>Weather Radar View <span class="badge-d">D</span></h2>
+          <div class="small">Switch between radar, satellite, wind, cloud, rain, and temperature overlays.</div>
+        </div>
+        <div class="section-head-right">
+          <div class="partner-tag" id="tag-map"></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="map-toolbar">
+        <button class="tab-btn active"    data-overlay="radar">Radar</button>
+        <button class="tab-btn secondary" data-overlay="satellite">Satellite</button>
+        <button class="tab-btn secondary" data-overlay="wind">Wind</button>
+        <button class="tab-btn secondary" data-overlay="clouds">Clouds</button>
+        <button class="tab-btn secondary" data-overlay="rain">Rain</button>
+        <button class="tab-btn secondary" data-overlay="temp">Temperature</button>
+      </div>
+      <div class="map-frame">
+        <iframe id="windyFrame" title="Windy Weather Map" loading="lazy"></iframe>
+      </div>
+      <div class="small mono" id="mapStatus" style="margin-top:10px;">Radar view active.</div>
+    </div>
+  </div>
+
+  <!-- ═══ 7-DAY FORECAST ═══ -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="section-head">
+        <div class="section-head-left">
+          <h2>7-Day Outlook <span class="badge-d">D</span></h2>
+          <div class="small">The pattern of the week ahead — temperature trend, precipitation risk, and practical planning value.</div>
+        </div>
+        <div class="section-head-right">
+          <div class="partner-tag" id="tag-forecast"></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="forecast-grid" id="forecastWrap">
+        <div class="forecast-day loader">Loading 7-day forecast…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ALERTS ═══ -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="section-head">
+        <div class="section-head-left">
+          <h2>Surrey Alerts &amp; Advisories</h2>
+          <div class="small">Automated threshold detection plus admin bulletin override.</div>
+        </div>
+        <div class="section-head-right">
+          <div class="partner-tag" id="tag-alerts"></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="alerts-wrap">
+        <div class="alert-box">
+          <div id="autoAlertTag" class="alert-tag tag-good">Monitoring</div>
+          <h3>Automated Weather Risk Readout</h3>
+          <p id="autoAlertText" class="muted">Reviewing forecast thresholds now.</p>
+          <div class="small" id="autoAlertMeta">Rain, wind, and temperature triggers are being checked.</div>
+        </div>
+        <div class="alert-box">
+          <div id="manualAlertTag" class="alert-tag tag-good">Official Links Ready</div>
+          <h3>Official Alert Access + Admin Override</h3>
+          <p id="manualAlertText" class="muted">Use the buttons below to open official forecast sources or post a local admin bulletin.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
+            <a id="ecForecastLink" class="btn secondary" href="#" target="_blank" rel="noopener">View Official Forecast</a>
+            <a id="ecAlertsLink"   class="btn secondary" href="#" target="_blank" rel="noopener">Environment Canada</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MICROCLIMATES ═══ -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="section-head">
+        <div class="section-head-left">
+          <h2>Surrey Microclimates <span class="badge-d">D</span></h2>
+          <div class="small">A hyperlocal scan across Whalley, Cloverdale, South Surrey, and Newton neighbourhood conditions.</div>
+        </div>
+        <div class="section-head-right">
+          <div class="partner-tag" id="tag-micro"></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="micro-grid" id="microWrap">
+        <div class="micro-card loader">Loading neighbourhood conditions…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PARTNER SPOTLIGHT ═══ -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="section-head">
+        <div class="section-head-left">
+          <h2>Partner Spotlight</h2>
+          <div class="small">Featured local partners and rotating sponsor placements across the WeatherCast.</div>
+        </div>
+        <div class="section-head-right">
+          <div class="partner-tag" id="tag-partner"></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="partner-grid" id="partnerGrid">
+        <div class="partner-card">
+          <h3>Open Partner Slot</h3>
+          <p class="muted">Add partner cards from the admin console.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ABOUT ═══ -->
+  <div class="panel">
+    <div class="panel-header"><h2>About WeatherCast Terminal™</h2></div>
+    <div class="panel-body">
+      <p class="muted" id="explainerText">
+        WeatherCast Terminal™ is a live city weather intelligence dashboard built to surface current conditions, forecast shifts, and practical local impact signals in one place — so readers can see what's happening now and make smarter day-to-day decisions.
+      </p>
+    </div>
+  </div>
+
+  <!-- ═══ ADMIN ACCESS ═══ -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="section-head">
+        <div class="section-head-left">
+          <h2>Admin Access</h2>
+          <div class="small">Use the password to open the private WeatherCast control panel.</div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="grid grid-2">
+        <div class="field">
+          <label for="adminPasswordInput">Admin Password</label>
+          <input id="adminPasswordInput" type="password" placeholder="Enter admin password" />
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;">
+          <button class="btn" id="unlockAdminBtn">Open Admin Console</button>
+          <button class="btn secondary" id="lockAdminBtn">Close Admin Console</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ADMIN SHELL ═══ -->
+  <div class="panel admin-shell" id="adminShell">
+    <div class="panel-header">
+      <div class="section-head">
+        <div class="section-head-left">
+          <h2>Admin Console</h2>
+          <div class="small">Settings, partner management, bulletins, backup, import, archive, restore, and continuity controls.</div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="admin-grid">
+
+        <!-- LEFT COL -->
+        <div>
+          <div class="admin-card" style="margin-bottom:16px;">
+            <h3>Platform Settings</h3>
+            <div class="field"><label>Hero Title</label><input id="setTitle" /></div>
+            <div class="field"><label>Hero Subtitle</label><textarea id="setSubtitle"></textarea></div>
+            <div class="field"><label>Explainer Copy</label><textarea id="setExplainer"></textarea></div>
+            <div class="grid grid-2">
+              <div class="field"><label>Location Name</label><input id="setLocationName" /></div>
+              <div class="field"><label>Timezone</label><input id="setTimezone" /></div>
+            </div>
+            <div class="grid grid-2">
+              <div class="field"><label>Latitude</label><input id="setLat" type="number" step="0.0001" /></div>
+              <div class="field"><label>Longitude</label><input id="setLon" type="number" step="0.0001" /></div>
+            </div>
+            <div class="grid grid-2">
+              <div class="field"><label>Windy Zoom</label><input id="setZoom" type="number" step="1" /></div>
+              <div class="field"><label>Refresh Minutes</label><input id="setRefresh" type="number" step="1" /></div>
+            </div>
+            <div class="grid grid-2">
+              <div class="field"><label>Official Forecast URL</label><input id="setForecastUrl" /></div>
+              <div class="field"><label>Official Alerts URL</label><input id="setAlertsUrl" /></div>
+            </div>
+            <div class="field"><label>Admin Password</label><input id="setAdminPassword" type="text" /></div>
+            <button class="btn" id="saveSettingsBtn">Save Settings</button>
+          </div>
+
+          <div class="admin-card" style="margin-bottom:16px;">
+            <h3>Manual Bulletin / Alert Override</h3>
+            <div class="field"><label>Bulletin Title</label><input id="bulletinTitle" placeholder="Example: Wind advisory for Newton routes" /></div>
+            <div class="field"><label>Bulletin Copy</label><textarea id="bulletinText" placeholder="Short local interpretation for Surrey readers."></textarea></div>
+            <div class="grid grid-2">
+              <div class="field">
+                <label>Status</label>
+                <select id="bulletinLevel">
+                  <option value="good">Monitoring</option>
+                  <option value="warn">Advisory</option>
+                  <option value="bad">Warning</option>
+                </select>
+              </div>
+              <div class="field"><label>Applies To</label><input id="bulletinScope" placeholder="Whalley / Cloverdale / South Surrey / All Surrey" /></div>
+            </div>
+            <button class="btn" id="addBulletinBtn">Add Bulletin</button>
+          </div>
+
+          <div class="admin-card" style="margin-bottom:16px;">
+            <h3>Partner Manager</h3>
+            <div class="field"><label>Partner Name</label><input id="partnerName" /></div>
+            <div class="field"><label>Partner Description</label><textarea id="partnerDesc"></textarea></div>
+            <div class="field"><label>Partner URL</label><input id="partnerUrl" /></div>
+            <button class="btn" id="addPartnerBtn">Add Partner</button>
+          </div>
+
+          <div class="admin-card">
+            <h3>Backup &amp; Continuity</h3>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn" id="exportBackupBtn">Export Backup</button>
+              <label class="btn secondary" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;">
+                Import Backup
+                <input id="importBackupInput" type="file" accept=".json,application/json" style="display:none;" />
+              </label>
+            </div>
+            <div class="small" style="margin-top:10px;">Export includes settings, partners, archive, active bulletins, and metadata.</div>
+          </div>
+        </div>
+
+        <!-- RIGHT COL -->
+        <div>
+          <div class="admin-card" style="margin-bottom:16px;">
+            <h3>Active Bulletins</h3>
+            <div id="bulletinList"></div>
+          </div>
+
+          <div class="admin-card" style="margin-bottom:16px;">
+            <h3>Archived Bulletins</h3>
+            <div id="archiveList"></div>
+          </div>
+
+          <div class="admin-card" style="margin-bottom:16px;">
+            <h3>Active Partners</h3>
+            <div id="partnerList"></div>
+          </div>
+
+          <div class="admin-card">
+            <h3>Changelog</h3>
+            <ul class="changelog small">
+              <li><strong>v2.0</strong> — First dynamic build with live weather engine, continuity layer, admin settings, sponsors, bulletins, backup/import, archive/restore, and public/admin separation.</li>
+              <li><strong>v2.1</strong> — Rebuilt layout hierarchy, live update ticker, full-width Weather Brief, rotating partner tags on each panel, and partner manager as a standard monetization layer.</li>
+              <li><strong>v3.0</strong> — Added Today's Decision Panel, practical interpretation layer with summary, action prompts, best window, commute note, and forecast confidence. Widened platform canvas.</li>
+              <li><strong>v3.0e</strong> — Moved platform further left, reduced overall width for improved visual centering.</li>
+              <li><strong>v3.0f</strong> — Left-aligned footer version stamp.</li>
+              <li><strong>v3.1</strong> — Rebuilt for Surrey, BC. Full WBN Style Guide v3.1 compliance: Robin Blue palette, contrast-safe status colours, Oswald display font, Source Code Pro monospace, frosted panel headers, updated border-radius scale, IIFE JS wrapping, event delegation replacing all inline onclick handlers, Ghost-ready.</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note" id="footerNote">WBN Platform v3.1 | WeatherCast™ – Surrey</div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── Storage keys ── */
+  var ITEMS_KEY    = 'platform_items_surrey';
+  var SPONSOR_KEY  = 'platform_sponsors_surrey';
+  var ADMIN_KEY    = 'platform_admin_surrey';
+  var ARCHIVE_KEY  = 'platform_archive_surrey';
+  var SETTINGS_KEY = 'platform_settings_surrey';
+  var META_KEY     = 'platform_meta_surrey';
+
+  var DEFAULT_SETTINGS = {
+    title:          'WeatherCast Terminal\u2122 \u2013 Surrey',
+    subtitle:       'A dedicated city weather intelligence dashboard delivering real-time atmospheric conditions, forecasts, environmental signals, and city impact insights for Surrey, BC.',
+    explainer:      'WeatherCast Terminal\u2122 is a live city weather intelligence dashboard built to surface current conditions, forecast shifts, and practical local impact signals in one place\u2014so readers can see what\u2019s happening now and make smarter day-to-day decisions.',
+    locationName:   'Surrey, BC',
+    timezone:       'America/Vancouver',
+    latitude:       49.1913,
+    longitude:      -122.8490,
+    windyZoom:      10,
+    refreshMinutes: 15,
+    forecastUrl:    'https://weather.gc.ca/city/pages/bc-79_metric_e.html',
+    alertsUrl:      'https://weather.gc.ca/warnings/index_e.html?prov=bc',
+    adminPassword:  'surreyweather'
+  };
+
+  var DEFAULT_META = {
+    version:        'v3.1',
+    buildFamily:    'WBN Cast Framework\u2122',
+    moduleType:     'WeatherCast Terminal',
+    lastEdited:     '',
+    lastFetchAt:    '',
+    currentOverlay: 'radar'
+  };
+
+  var DEFAULT_SPONSORS = [
+    { id: makeId(), name: 'Open Partner Slot', desc: 'Feature your brand inside the Surrey WeatherCast.', url: '' }
+  ];
+
+  /* ── Helpers ── */
+  function makeId() { return 'id-' + Math.random().toString(36).slice(2, 10) + '-' + Date.now().toString(36); }
+
+  function esc(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function safeRead(key, fallback) {
+    try { var r = localStorage.getItem(key); return r ? JSON.parse(r) : (fallback !== undefined ? fallback : null); }
+    catch (e) { return (fallback !== undefined ? fallback : null); }
+  }
+
+  function safeWrite(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+  }
+
+  function getItems()    { return safeRead(ITEMS_KEY,    []); }
+  function getSponsors() { var s = safeRead(SPONSOR_KEY, null); return s !== null ? s : DEFAULT_SPONSORS; }
+  function getArchive()  { return safeRead(ARCHIVE_KEY,  []); }
+
+  function getSettings() {
+    var s = safeRead(SETTINGS_KEY, null);
+    return Object.assign({}, DEFAULT_SETTINGS, s || {});
+  }
+
+  function getMeta() {
+    var m = safeRead(META_KEY, null);
+    return Object.assign({}, DEFAULT_META, m || {});
+  }
+
+  function setMeta(patch) {
+    var next = Object.assign({}, getMeta(), patch);
+    safeWrite(META_KEY, next);
+    return next;
+  }
+
+  /* ── Format ── */
+  function fmtTemp(v) { return (v == null || isNaN(v)) ? '--\u00b0C' : Math.round(v) + '\u00b0C'; }
+  function fmtPct(v)  { return (v == null || isNaN(v)) ? '--%'       : Math.round(v) + '%'; }
+  function fmtKm(v)   { return (v == null || isNaN(v)) ? '-- km/h'   : Math.round(v) + ' km/h'; }
+  function fmtMM(v)   { return (v == null || isNaN(v)) ? '-- mm'     : Number(v).toFixed(1) + ' mm'; }
+
+  function fmtTime(dateStr, timezone) {
+    try { return new Intl.DateTimeFormat('en-CA', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: timezone }).format(new Date(dateStr)); }
+    catch (e) { return '--'; }
+  }
+
+  function fmtDay(dateStr, timezone) {
+    try { return new Intl.DateTimeFormat('en-CA', { weekday: 'short', month: 'short', day: 'numeric', timeZone: timezone }).format(new Date(dateStr)); }
+    catch (e) { return '--'; }
+  }
+
+  function fmtStamp(dateObj, timezone) {
+    try { return new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: timezone }).format(dateObj); }
+    catch (e) { return '--'; }
+  }
+
+  function windDir(deg) {
+    if (deg == null || isNaN(deg)) return '--';
+    var dirs = ['N','NE','E','SE','S','SW','W','NW'];
+    return dirs[Math.round(deg / 45) % 8];
+  }
+
+  function clamp(num, min, max) { return Math.max(min, Math.min(max, num)); }
+
+  function avgFirstHours(arr, count, fallback) {
+    if (!Array.isArray(arr) || !arr.length) return (fallback !== undefined ? fallback : 0);
+    var subset = arr.slice(0, count);
+    var sum = subset.reduce(function (a, b) { return a + (Number(b) || 0); }, 0);
+    return sum / subset.length;
+  }
+
+  function weatherCodeToText(code) {
+    var map = {
+      0:'Clear', 1:'Mainly clear', 2:'Partly cloudy', 3:'Cloudy',
+      45:'Fog', 48:'Rime fog',
+      51:'Light drizzle', 53:'Drizzle', 55:'Dense drizzle',
+      56:'Freezing drizzle', 57:'Dense freezing drizzle',
+      61:'Light rain', 63:'Rain', 65:'Heavy rain',
+      66:'Freezing rain', 67:'Heavy freezing rain',
+      71:'Light snow', 73:'Snow', 75:'Heavy snow', 77:'Snow grains',
+      80:'Rain showers', 81:'Rain showers', 82:'Heavy showers',
+      85:'Snow showers', 86:'Heavy snow showers',
+      95:'Thunderstorm', 96:'Thunderstorm with hail', 99:'Severe thunderstorm'
+    };
+    return map[code] || 'Conditions changing';
+  }
+
+  function getClassForLevel(level) {
+    if (level === 'bad')  return 'tag-bad';
+    if (level === 'warn') return 'tag-warn';
+    return 'tag-good';
+  }
+
+  function getLabelForLevel(level) {
+    if (level === 'bad')  return 'Warning';
+    if (level === 'warn') return 'Advisory';
+    return 'Monitoring';
+  }
+
+  function scoreClass(value) {
+    if (typeof value !== 'number') return '';
+    if (value >= 8) return 'score-good';
+    if (value >= 5) return 'score-warn';
+    return 'score-bad';
+  }
+
+  function setText(id, value) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = value;
+  }
+
+  function setHTML(id, value) {
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = value;
+  }
+
+  /* ── Weather state ── */
+  var WEATHER_STATE = { loading: true, error: '', current: null, hourly: null, daily: null, micro: [], lastFetch: null };
+  var refreshTimerId = null;
+  var countdownIntervalId = null;
+
+  /* ── Partner tags ── */
+  var PARTNER_TARGETS = ['conditions','brief','impact','timeline','map','forecast','alerts','micro','partner'];
+
+  function renderPartnerTags() {
+    var sponsors = getSponsors();
+    PARTNER_TARGETS.forEach(function (key, idx) {
+      var el = document.getElementById('tag-' + key);
+      if (!el) return;
+      if (!sponsors.length) { el.textContent = ''; return; }
+      var sponsor = sponsors[idx % sponsors.length];
+      if (!sponsor || !sponsor.name) { el.textContent = ''; return; }
+      el.innerHTML = sponsor.url
+        ? 'Partner: <a href="' + esc(sponsor.url) + '" target="_blank" rel="noopener">' + esc(sponsor.name) + '</a>'
+        : 'Partner: ' + esc(sponsor.name);
+    });
+  }
+
+  function renderPartnerSpotlight() {
+    var wrap = document.getElementById('partnerGrid');
+    var sponsors = getSponsors();
+    if (!sponsors.length) {
+      wrap.innerHTML = '<div class="partner-card"><h3>Open Partner Slot</h3><p class="muted">Add partner cards from the admin console.</p></div>';
+      return;
+    }
+    wrap.innerHTML = sponsors.map(function (s) {
+      return '<div class="partner-card"><h3>' + esc(s.name) + '</h3><p class="muted">' + esc(s.desc || '') + '</p>'
+        + (s.url ? '<a class="btn secondary" href="' + esc(s.url) + '" target="_blank" rel="noopener">Visit Partner</a>' : '')
+        + '</div>';
+    }).join('');
+  }
+
+  /* ── API URLs ── */
+  function buildForecastUrl(lat, lon, timezone) {
+    var params = new URLSearchParams({
+      latitude: lat, longitude: lon, timezone: timezone,
+      current:  'temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m,is_day',
+      hourly:   'temperature_2m,apparent_temperature,relative_humidity_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index,visibility',
+      daily:    'weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset,wind_speed_10m_max,uv_index_max',
+      forecast_days: 7
+    });
+    return 'https://api.open-meteo.com/v1/forecast?' + params.toString();
+  }
+
+  function buildCurrentOnlyUrl(lat, lon, timezone) {
+    var params = new URLSearchParams({
+      latitude: lat, longitude: lon, timezone: timezone,
+      current: 'temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m'
+    });
+    return 'https://api.open-meteo.com/v1/forecast?' + params.toString();
+  }
+
+  /* ── Windy map ── */
+  function overlayToWindy(overlay) {
+    var map = { radar:'radar', satellite:'satellite', wind:'wind', clouds:'clouds', rain:'rain', temp:'temp' };
+    return map[overlay] || 'radar';
+  }
+
+  function updateWindyMap(overlay) {
+    var settings = getSettings();
+    var lat = settings.latitude;
+    var lon = settings.longitude;
+    var zoom = settings.windyZoom || 10;
+    var wo = overlayToWindy(overlay);
+    var src = 'https://embed.windy.com/embed2.html?lat=' + encodeURIComponent(lat)
+      + '&lon=' + encodeURIComponent(lon)
+      + '&detailLat=' + encodeURIComponent(lat)
+      + '&detailLon=' + encodeURIComponent(lon)
+      + '&width=100%25&height=520&zoom=' + encodeURIComponent(zoom)
+      + '&level=surface&overlay=' + encodeURIComponent(wo)
+      + '&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=km%2Fh&metricTemp=%C2%B0C';
+    document.getElementById('windyFrame').src = src;
+
+    var statusMap = {
+      radar:'Radar view active.', satellite:'Satellite view active.', wind:'Wind overlay active.',
+      clouds:'Cloud cover overlay active.', rain:'Rain overlay active.', temp:'Temperature overlay active.'
+    };
+    setText('mapStatus', statusMap[overlay] || 'Map active.');
+    setMeta({ currentOverlay: overlay });
+
+    document.querySelectorAll('.tab-btn').forEach(function (btn) {
+      var active = btn.dataset.overlay === overlay;
+      btn.classList.toggle('active', active);
+      btn.classList.toggle('secondary', !active);
+    });
+  }
+
+  /* ── Fetch ── */
+  function fetchMainWeather() {
+    var settings = getSettings();
+    return fetch(buildForecastUrl(settings.latitude, settings.longitude, settings.timezone))
+      .then(function (res) { if (!res.ok) throw new Error('fetch failed'); return res.json(); });
+  }
+
+  function fetchMicroClimate(point) {
+    var settings = getSettings();
+    return fetch(buildCurrentOnlyUrl(point.lat, point.lon, settings.timezone))
+      .then(function (res) { if (!res.ok) throw new Error('fetch failed'); return res.json(); })
+      .then(function (json) { return Object.assign({}, point, { data: json.current || null }); });
+  }
+
+  function loadWeatherData(showLoading) {
+    if (showLoading) { WEATHER_STATE.loading = true; WEATHER_STATE.error = ''; renderAll(); }
+
+    var microPoints = [
+      { name: 'Whalley',      lat: 49.1868, lon: -122.8480 },
+      { name: 'Cloverdale',   lat: 49.1000, lon: -122.7296 },
+      { name: 'South Surrey', lat: 49.0500, lon: -122.8200 },
+      { name: 'Newton',       lat: 49.1400, lon: -122.8500 }
+    ];
+
+    Promise.all([fetchMainWeather()].concat(microPoints.map(fetchMicroClimate)))
+      .then(function (results) {
+        var main = results[0];
+        var micro = results.slice(1);
+        WEATHER_STATE = {
+          loading: false, error: '',
+          current: main.current || null,
+          hourly:  main.hourly  || null,
+          daily:   main.daily   || null,
+          micro:   micro,
+          lastFetch: new Date()
+        };
+        setMeta({ lastFetchAt: WEATHER_STATE.lastFetch.toISOString() });
+        renderAll();
+        scheduleRefresh();
+      })
+      .catch(function () {
+        WEATHER_STATE.loading = false;
+        WEATHER_STATE.error = 'Unable to load live weather data.';
+        renderAll();
+        scheduleRefresh();
+      });
+  }
+
+  /* ── Today index helpers ── */
+  function getTodayIndices(hourly) {
+    if (!hourly || !hourly.time) return [];
+    var settings = getSettings();
+    var todayKey = new Intl.DateTimeFormat('sv-SE', { timeZone: settings.timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+    var indices = [];
+    hourly.time.forEach(function (t, idx) {
+      var key = new Intl.DateTimeFormat('sv-SE', { timeZone: settings.timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(t));
+      if (key === todayKey) indices.push(idx);
+    });
+    return indices;
+  }
+
+  function getNext8TodayPoints() {
+    var hourly = WEATHER_STATE.hourly;
+    if (!hourly || !hourly.time) return [];
+    var settings = getSettings();
+    var now = new Date();
+    var points = [];
+    var todayIndices = getTodayIndices(hourly);
+    for (var i = 0; i < todayIndices.length; i++) {
+      var idx = todayIndices[i];
+      var t = new Date(hourly.time[idx]);
+      if (t >= now && points.length < 8) {
+        points.push({
+          index: idx,
+          time:  hourly.time[idx],
+          temp:  hourly.temperature_2m ? hourly.temperature_2m[idx] : null,
+          pop:   hourly.precipitation_probability ? (hourly.precipitation_probability[idx] || 0) : 0,
+          code:  hourly.weather_code ? hourly.weather_code[idx] : null,
+          wind:  hourly.wind_speed_10m ? (hourly.wind_speed_10m[idx] || 0) : 0,
+          label: fmtTime(hourly.time[idx], settings.timezone)
+        });
+      }
+    }
+    return points;
+  }
+
+  /* ── Weather brief ── */
+  function buildWeatherBrief() {
+    var current = WEATHER_STATE.current;
+    var daily   = WEATHER_STATE.daily;
+    var hourly  = WEATHER_STATE.hourly;
+    if (!current || !daily || !hourly) return 'Loading forecast summary\u2026';
+
+    var high      = daily.temperature_2m_max ? daily.temperature_2m_max[0] : null;
+    var low       = daily.temperature_2m_min ? daily.temperature_2m_min[0] : null;
+    var rainProb  = daily.precipitation_probability_max ? (daily.precipitation_probability_max[0] || 0) : 0;
+    var rainSum   = daily.precipitation_sum ? (daily.precipitation_sum[0] || 0) : 0;
+    var maxWind   = daily.wind_speed_10m_max ? (daily.wind_speed_10m_max[0] || 0) : 0;
+    var cond      = weatherCodeToText(current.weather_code);
+    var todayIdx  = getTodayIndices(hourly);
+    var dryHours  = todayIdx.filter(function (i) { return (hourly.precipitation_probability ? (hourly.precipitation_probability[i] || 0) : 0) < 25; }).length;
+    var wetDay    = rainProb >= 60 || rainSum >= 3;
+    var mildDay   = high >= 11 && high <= 18;
+    var strongWind = maxWind >= 35;
+
+    var lead   = 'Surrey is tracking ' + cond.toLowerCase() + ' conditions right now at ' + fmtTemp(current.temperature_2m) + '. ';
+    var body   = 'Today looks like a ' + (wetDay ? 'higher-moisture' : 'fairly manageable') + ' pattern with a high near ' + Math.round(high) + '\u00b0C and a low around ' + Math.round(low) + '\u00b0C. ';
+    var impact = wetDay ? 'Keep an eye on rain timing, especially for commuting, field work, and outdoor plans. ' : 'There should be workable outdoor windows through much of the day. ';
+    var wind   = strongWind ? 'Winds may become a factor, particularly near open roads and exposed areas of Surrey. ' : 'Wind is not the main disruption factor today. ';
+    var finish = dryHours >= 5 ? 'Overall, Surrey gets several usable hours for errands, site visits, and local events.' : 'Overall, the day looks more stop-and-start, with fewer clean outdoor windows than usual.';
+    if (mildDay && !wetDay) finish = 'Overall, this is one of the better Surrey weather days for outdoor activity, neighbourhood traffic, and event readiness.';
+
+    return lead + body + impact + wind + finish;
+  }
+
+  /* ── Auto risk ── */
+  function autoRiskReadout() {
+    var daily   = WEATHER_STATE.daily;
+    var current = WEATHER_STATE.current;
+    if (!daily || !current) return { level: 'good', label: 'Monitoring', text: 'Forecast thresholds are still loading.', meta: 'Rain, wind, and temperature triggers will appear here.' };
+
+    var rainProb = daily.precipitation_probability_max ? (daily.precipitation_probability_max[0] || 0) : 0;
+    var rainSum  = daily.precipitation_sum ? (daily.precipitation_sum[0] || 0) : 0;
+    var maxWind  = daily.wind_speed_10m_max ? (daily.wind_speed_10m_max[0] || 0) : 0;
+    var code     = current.weather_code;
+
+    if (maxWind >= 55 || rainSum >= 15 || [95, 96, 99].indexOf(code) !== -1) {
+      return { level: 'bad', label: 'Warning', text: 'Weather disruption risk is elevated for Surrey today. Strong wind, heavy rain, or storm instability could affect travel and outdoor operations.', meta: 'High-impact thresholds triggered by wind, rainfall, or storm code.' };
+    }
+    if (maxWind >= 35 || rainProb >= 70 || rainSum >= 5) {
+      return { level: 'warn', label: 'Advisory', text: 'Conditions deserve extra attention today. Expect a more uneven operating day for commutes, job sites, and outdoor plans.', meta: 'Moderate thresholds triggered by rain probability, rainfall totals, or wind.' };
+    }
+    return { level: 'good', label: 'Monitoring', text: 'No major automated weather trigger is showing right now for Surrey. Normal local caution still applies.', meta: 'No significant rain or wind threshold triggered at the moment.' };
+  }
+
+  /* ── Scores ── */
+  function computeScores() {
+    var current = WEATHER_STATE.current;
+    var daily   = WEATHER_STATE.daily;
+    if (!current || !daily) {
+      return {
+        commute: { value: 'Loading\u2026', text: 'Assessing rain, visibility, and wind.' },
+        outdoor: { value: 'Loading\u2026', text: 'Checking comfort and dry windows.' },
+        marine:  { value: 'Loading\u2026', text: 'Looking at wind and coastal exposure.' },
+        air:     { value: 'Watch',       text: 'Local AQI feed can be layered in later.' },
+        event:   { value: 'Loading\u2026', text: 'Checking rain timing and temperature.' },
+        build:   { value: 'Loading\u2026', text: 'Watching rain and wind disruption risk.' }
+      };
+    }
+
+    var rainProb = daily.precipitation_probability_max ? (daily.precipitation_probability_max[0] || 0) : 0;
+    var rainSum  = daily.precipitation_sum ? (daily.precipitation_sum[0] || 0) : 0;
+    var maxWind  = daily.wind_speed_10m_max ? (daily.wind_speed_10m_max[0] || 0) : 0;
+    var high     = daily.temperature_2m_max ? (daily.temperature_2m_max[0] || 0) : 0;
+    var vis      = avgFirstHours(WEATHER_STATE.hourly ? WEATHER_STATE.hourly.visibility : null, 6, 10000);
+    var comfortP = Math.abs(15 - high);
+
+    var c = clamp(Math.round(10 - (rainProb / 20) - (maxWind / 25) - (vis < 5000 ? 2 : 0)), 1, 10);
+    var o = clamp(Math.round(10 - (rainProb / 18) - (rainSum / 3) - (comfortP / 8)), 1, 10);
+    var m = clamp(Math.round(10 - (maxWind / 10) - (rainProb / 30)), 1, 10);
+    var e = clamp(Math.round(10 - (rainProb / 16) - (rainSum / 4) - (maxWind / 28)), 1, 10);
+    var b = clamp(Math.round(10 - (rainProb / 16) - (rainSum / 3) - (maxWind / 22)), 1, 10);
+
+    return {
+      commute: { value: c + '/10', numeric: c, text: c >= 8 ? 'Low disruption risk for most local routes.' : c >= 5 ? 'Some slowdown risk from rain or wind.' : 'Higher travel friction likely in busy corridors.' },
+      outdoor: { value: o + '/10', numeric: o, text: o >= 8 ? 'Good day for general outdoor use.' : o >= 5 ? 'Usable with timing and backup plans.' : 'More limited outdoor value today.' },
+      marine:  { value: m + '/10', numeric: m, text: m >= 8 ? 'Relatively manageable coastal conditions.' : m >= 5 ? 'Waterfront caution advised.' : 'Coastal exposure risk is elevated.' },
+      air:     { value: 'Watch', text: 'Add AQHI integration later for full smoke and pollution monitoring.' },
+      event:   { value: e + '/10', numeric: e, text: e >= 8 ? 'Good readiness for local events.' : e >= 5 ? 'Moderate planning caution recommended.' : 'Indoor backup or stronger planning advised.' },
+      build:   { value: b + '/10', numeric: b, text: b >= 8 ? 'Field conditions look workable.' : b >= 5 ? 'Possible weather drag on outdoor work.' : 'Weather could materially slow site activity.' }
+    };
+  }
+
+  /* ── Ticker ── */
+  function buildTickerItems() {
+    var items    = [];
+    var current  = WEATHER_STATE.current;
+    var daily    = WEATHER_STATE.daily;
+    var scores   = computeScores();
+    var bulletins = getItems();
+
+    if (current) {
+      items.push(weatherCodeToText(current.weather_code) + ' now in Surrey at ' + fmtTemp(current.temperature_2m));
+      items.push('Wind ' + fmtKm(current.wind_speed_10m) + ' from ' + windDir(current.wind_direction_10m));
+    }
+    if (daily) {
+      items.push('Rain risk today ' + fmtPct(daily.precipitation_probability_max ? daily.precipitation_probability_max[0] : null));
+      items.push('High / Low ' + Math.round(daily.temperature_2m_max ? daily.temperature_2m_max[0] : 0) + '\u00b0 / ' + Math.round(daily.temperature_2m_min ? daily.temperature_2m_min[0] : 0) + '\u00b0');
+      items.push('Precipitation today ' + fmtMM(daily.precipitation_sum ? daily.precipitation_sum[0] : 0));
+    }
+    if (scores.outdoor && scores.outdoor.value) items.push('Outdoor score ' + scores.outdoor.value);
+    if (scores.commute && scores.commute.value) items.push('Commute ' + scores.commute.value);
+    if (scores.event   && scores.event.value)   items.push('Event readiness ' + scores.event.value);
+    if (bulletins.length) items.unshift(getLabelForLevel(bulletins[0].level) + ': ' + bulletins[0].title);
+
+    var deduped = items.filter(function (v, i, a) { return a.indexOf(v) === i && v; });
+    return deduped.length ? deduped : ['Live Surrey weather update is loading\u2026'];
+  }
+
+  /* ── Decision panel ── */
+  function buildDecisionData() {
+    var current = WEATHER_STATE.current;
+    var daily   = WEATHER_STATE.daily;
+    var hourly  = WEATHER_STATE.hourly;
+
+    if (!current || !daily || !hourly) {
+      return {
+        lead:       'Generating today\u2019s decision summary\u2026',
+        actions:    ['Loading daily guidance\u2026'],
+        bestWindow: 'Checking the best time to be outside\u2026',
+        commute:    'Assessing likely travel friction\u2026',
+        confidence: 'Calculating forecast confidence\u2026'
+      };
+    }
+
+    var points   = getNext8TodayPoints();
+    var rainProb = daily.precipitation_probability_max ? (daily.precipitation_probability_max[0] || 0) : 0;
+    var rainSum  = daily.precipitation_sum ? (daily.precipitation_sum[0] || 0) : 0;
+    var maxWind  = daily.wind_speed_10m_max ? (daily.wind_speed_10m_max[0] || 0) : 0;
+    var high     = daily.temperature_2m_max ? (daily.temperature_2m_max[0] || 0) : 0;
+    var low      = daily.temperature_2m_min ? (daily.temperature_2m_min[0] || 0) : 0;
+    var nowCond  = weatherCodeToText(current.weather_code).toLowerCase();
+
+    var actions = [];
+    if (current.temperature_2m < 14) {
+      actions.push('Bring a light jacket or outer layer for the cooler part of the day.');
+    } else if (current.temperature_2m > 24) {
+      actions.push('Dress lighter and plan hydration if you will be outside for longer stretches.');
+    } else {
+      actions.push('Conditions are fairly manageable for normal day-to-day activity.');
+    }
+
+    if (rainProb >= 60 || rainSum >= 3) {
+      actions.push('Keep an umbrella or rain layer nearby in case showers arrive earlier than expected.');
+    } else if (rainProb >= 35) {
+      actions.push('A flexible backup plan is smart if you have outdoor errands or appointments.');
+    } else {
+      actions.push('Outdoor plans look more workable than usual with fewer weather interruptions expected.');
+    }
+
+    if (maxWind >= 35) actions.push('Use extra caution on exposed roads and near any unsecured outdoor items.');
+    if (high >= 11 && high <= 18 && rainProb < 50) actions.push('This is a relatively good day for errands, walks, and general outdoor use if you time it well.');
+
+    var goodPoints = points.filter(function (p) { return p.pop < 35 && p.wind < 28; });
+    var bestWindow = 'Usable time blocks are still being calculated.';
+    if (goodPoints.length) {
+      bestWindow = 'Best outdoor window: ' + goodPoints[0].label + ' to ' + goodPoints[goodPoints.length - 1].label + '.';
+    } else if (points.length) {
+      bestWindow = 'Outdoor timing looks more limited today. The cleanest window appears closest to ' + points[0].label + '.';
+    }
+
+    var wetCodes = [61, 63, 65, 80, 81, 82];
+    var laterWet = points.find(function (p) { return p.pop >= 55 || wetCodes.indexOf(p.code) !== -1; });
+    var lastPt   = points[Math.min(points.length - 1, Math.max(0, points.length - 2))];
+    var commute  = 'Commute conditions look fairly routine right now.';
+    if (laterWet) {
+      commute = 'Watch the commute after ' + laterWet.label + ' \u2014 rain or heavier moisture may slow local travel.';
+    } else if (lastPt && lastPt.wind >= 30) {
+      commute = 'Later travel looks breezier than usual, especially in exposed corridors.';
+    } else if (rainProb >= 40) {
+      commute = 'Travel disruption risk looks moderate today, so a little extra time is sensible.';
+    }
+
+    var confidence = 'Forecast confidence: High \u2014 pattern looks fairly stable today.';
+    if (rainProb >= 40 || maxWind >= 30) confidence = 'Forecast confidence: Moderate \u2014 timing and intensity may shift through the day.';
+    if (rainProb >= 70 && maxWind >= 35)  confidence = 'Forecast confidence: Moderate to lower \u2014 conditions may evolve more unevenly than the early forecast suggests.';
+
+    var lead = 'Right now Surrey is seeing ' + nowCond + ' conditions at ' + fmtTemp(current.temperature_2m) + ', with a day trending toward a high near ' + Math.round(high) + '\u00b0C and a low around ' + Math.round(low) + '\u00b0C.';
+    if (rainProb >= 60) lead = 'Surrey starts with ' + nowCond + ' conditions at ' + fmtTemp(current.temperature_2m) + ', but later rain risk is elevated enough that timing your day will matter.';
+    else if (maxWind >= 35) lead = 'Surrey is running ' + nowCond + ' at ' + fmtTemp(current.temperature_2m) + ', with wind likely to become a more noticeable factor later on.';
+    else if (high >= 11 && high <= 18 && rainProb < 40) lead = 'Surrey is off to a workable start at ' + fmtTemp(current.temperature_2m) + ', and today looks fairly usable for normal outdoor plans if you take advantage of the better window.';
+
+    return { lead: lead, actions: actions, bestWindow: bestWindow, commute: commute, confidence: confidence };
+  }
+
+  /* ══════════════ RENDER FUNCTIONS ══════════════ */
+
+  function renderHeader() {
+    var settings = getSettings();
+    var meta     = getMeta();
+    setText('heroTitle',    settings.title);
+    setText('heroSubtitle', settings.subtitle);
+    setText('explainerText', settings.explainer);
+    setText('sourceStamp', 'Source: Open-Meteo + Windy');
+
+    var now = new Date();
+    var stamp = new Intl.DateTimeFormat('en-CA', {
+      year: 'numeric', month: 'short', day: 'numeric',
+      hour: 'numeric', minute: '2-digit', hour12: true,
+      timeZone: settings.timezone
+    }).format(now);
+
+    setText('footerNote', 'WBN Platform ' + meta.version + ' | WeatherCast\u2122 \u2013 Surrey | ' + stamp);
+    setText('updatedStamp', WEATHER_STATE.lastFetch ? 'Updated: ' + fmtStamp(WEATHER_STATE.lastFetch, settings.timezone) : 'Updated: --');
+
+    var el = document.getElementById('ecForecastLink'); if (el) el.href = settings.forecastUrl || '#';
+    var el2 = document.getElementById('ecAlertsLink');  if (el2) el2.href = settings.alertsUrl || '#';
+
+    setText('tickerTrack', buildTickerItems().join('  \u25c6  ') + '  \u25c6  ');
+  }
+
+  function renderDecisionPanel() {
+    var d = buildDecisionData();
+    setText('decisionLead', d.lead);
+    setHTML('decisionActions', d.actions.map(function (item) { return '<li>' + esc(item) + '</li>'; }).join(''));
+    setText('decisionWindow',     d.bestWindow);
+    setText('decisionCommute',    d.commute);
+    setText('decisionConfidence', d.confidence);
+  }
+
+  function renderCurrentView() {
+    if (WEATHER_STATE.error) { setText('conditionNow', WEATHER_STATE.error); return; }
+    var current = WEATHER_STATE.current;
+    var daily   = WEATHER_STATE.daily;
+    var settings = getSettings();
+    if (!current || !daily) return;
+
+    setText('tempNow',     fmtTemp(current.temperature_2m));
+    setText('conditionNow', weatherCodeToText(current.weather_code));
+    setText('feelsNow',    fmtTemp(current.apparent_temperature));
+    setText('humidityNow', 'Humidity ' + fmtPct(current.relative_humidity_2m));
+    setText('windNow',     fmtKm(current.wind_speed_10m));
+    setText('windDirNow',  'Direction ' + windDir(current.wind_direction_10m));
+    setText('rainRiskNow', fmtPct(current.precipitation_probability != null ? current.precipitation_probability : (daily.precipitation_probability_max ? daily.precipitation_probability_max[0] : null)));
+    setText('highLowNow',  'High / Low ' + Math.round(daily.temperature_2m_max ? daily.temperature_2m_max[0] : 0) + '\u00b0 / ' + Math.round(daily.temperature_2m_min ? daily.temperature_2m_min[0] : 0) + '\u00b0');
+    setText('weatherBrief', buildWeatherBrief());
+    setText('sunNow', fmtTime(daily.sunrise ? daily.sunrise[0] : null, settings.timezone) + ' / ' + fmtTime(daily.sunset ? daily.sunset[0] : null, settings.timezone));
+    setText('uvPeak', String(Math.round(daily.uv_index_max ? daily.uv_index_max[0] : 0)));
+    setText('precipToday', fmtMM(daily.precipitation_sum ? daily.precipitation_sum[0] : 0));
+  }
+
+  function renderImpactScores() {
+    var scores = computeScores();
+    var keys = ['Commute','Outdoor','Marine','Air','Event','Build'];
+    var ids  = ['commute','outdoor','marine','air','event','build'];
+
+    ids.forEach(function (id, i) {
+      var score = scores[id];
+      setText('score' + keys[i], score.value);
+      setText('text'  + keys[i], score.text);
+      var el = document.getElementById('score' + keys[i]);
+      if (el) el.className = 'impact-score ' + (id === 'air' ? 'score-warn' : scoreClass(score.numeric));
+    });
+  }
+
+  function renderTimeline() {
+    var wrap   = document.getElementById('timelineWrap');
+    var hourly = WEATHER_STATE.hourly;
+    if (!hourly || !hourly.time) { wrap.innerHTML = '<div class="timeline-item loader">Loading timeline\u2026</div>'; return; }
+
+    var settings = getSettings();
+    var now = new Date();
+    var points = [];
+
+    for (var i = 0; i < hourly.time.length; i++) {
+      var t = new Date(hourly.time[i]);
+      if (t >= now && points.length < 8) {
+        points.push({
+          time: hourly.time[i],
+          temp: hourly.temperature_2m ? hourly.temperature_2m[i] : null,
+          pop:  hourly.precipitation_probability ? hourly.precipitation_probability[i] : null,
+          code: hourly.weather_code ? hourly.weather_code[i] : null,
+          wind: hourly.wind_speed_10m ? hourly.wind_speed_10m[i] : null
+        });
+      }
+    }
+
+    wrap.innerHTML = points.map(function (p) {
+      return '<div class="timeline-item">'
+        + '<div class="small mono">' + esc(fmtTime(p.time, settings.timezone)) + '</div>'
+        + '<div style="font-size:20px;font-weight:700;margin:6px 0;">' + esc(fmtTemp(p.temp)) + '</div>'
+        + '<div class="tiny">' + esc(weatherCodeToText(p.code)) + '</div>'
+        + '<div class="tiny" style="margin-top:6px;">Rain ' + esc(fmtPct(p.pop)) + '</div>'
+        + '<div class="tiny">Wind ' + esc(fmtKm(p.wind)) + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  function renderForecast() {
+    var wrap  = document.getElementById('forecastWrap');
+    var daily = WEATHER_STATE.daily;
+    var settings = getSettings();
+    if (!daily || !daily.time) { wrap.innerHTML = '<div class="forecast-day loader">Loading 7-day forecast\u2026</div>'; return; }
+
+    wrap.innerHTML = daily.time.map(function (dateStr, idx) {
+      var code    = daily.weather_code ? daily.weather_code[idx] : null;
+      var high    = daily.temperature_2m_max ? daily.temperature_2m_max[idx] : null;
+      var low     = daily.temperature_2m_min ? daily.temperature_2m_min[idx] : null;
+      var rain    = daily.precipitation_probability_max ? daily.precipitation_probability_max[idx] : null;
+      var rainSum = daily.precipitation_sum ? daily.precipitation_sum[idx] : null;
+      var wind    = daily.wind_speed_10m_max ? daily.wind_speed_10m_max[idx] : null;
+
+      return '<div class="forecast-day">'
+        + '<div class="day">' + esc(fmtDay(dateStr, settings.timezone)) + '</div>'
+        + '<div class="tiny">' + esc(weatherCodeToText(code)) + '</div>'
+        + '<div class="temps">' + Math.round(high) + '\u00b0 / ' + Math.round(low) + '\u00b0</div>'
+        + '<div class="tiny">Rain risk ' + esc(fmtPct(rain)) + '</div>'
+        + '<div class="tiny">Rain ' + esc(fmtMM(rainSum)) + '</div>'
+        + '<div class="tiny">Wind max ' + esc(fmtKm(wind)) + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  function renderAlerts() {
+    var auto      = autoRiskReadout();
+    var bulletins = getItems();
+
+    var autoTag = document.getElementById('autoAlertTag');
+    autoTag.className   = 'alert-tag ' + getClassForLevel(auto.level);
+    autoTag.textContent = auto.label;
+    setText('autoAlertText', auto.text);
+    setText('autoAlertMeta', auto.meta);
+
+    var manualTag  = document.getElementById('manualAlertTag');
+    var manualText = document.getElementById('manualAlertText');
+
+    if (bulletins.length) {
+      var top = bulletins[0];
+      manualTag.className   = 'alert-tag ' + getClassForLevel(top.level);
+      manualTag.textContent = getLabelForLevel(top.level);
+      manualText.textContent = top.title + ': ' + top.text;
+    } else {
+      manualTag.className   = 'alert-tag tag-good';
+      manualTag.textContent = 'Official Links Ready';
+      manualText.textContent = 'Use the buttons below to open official forecast sources or post a local admin bulletin.';
+    }
+  }
+
+  function renderMicroclimates() {
+    var wrap = document.getElementById('microWrap');
+    if (!WEATHER_STATE.micro || !WEATHER_STATE.micro.length) {
+      wrap.innerHTML = '<div class="micro-card loader">Loading neighbourhood conditions\u2026</div>'; return;
+    }
+    wrap.innerHTML = WEATHER_STATE.micro.map(function (point) {
+      var d = point.data || {};
+      return '<div class="micro-card">'
+        + '<h3>' + esc(point.name) + '</h3>'
+        + '<div style="font-size:24px;font-weight:700;margin:8px 0;">' + esc(fmtTemp(d.temperature_2m)) + '</div>'
+        + '<div class="tiny">' + esc(weatherCodeToText(d.weather_code)) + '</div>'
+        + '<div class="tiny" style="margin-top:8px;">Wind ' + esc(fmtKm(d.wind_speed_10m)) + '</div>'
+        + '<div class="tiny">Humidity ' + esc(fmtPct(d.relative_humidity_2m)) + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  function renderAdminView() {
+    var settings = getSettings();
+    var isOpen   = safeRead(ADMIN_KEY, false);
+    document.getElementById('adminShell').classList.toggle('open', !!isOpen);
+
+    document.getElementById('setTitle').value        = settings.title;
+    document.getElementById('setSubtitle').value     = settings.subtitle;
+    document.getElementById('setExplainer').value    = settings.explainer;
+    document.getElementById('setLocationName').value = settings.locationName;
+    document.getElementById('setTimezone').value     = settings.timezone;
+    document.getElementById('setLat').value          = settings.latitude;
+    document.getElementById('setLon').value          = settings.longitude;
+    document.getElementById('setZoom').value         = settings.windyZoom;
+    document.getElementById('setRefresh').value      = settings.refreshMinutes;
+    document.getElementById('setForecastUrl').value  = settings.forecastUrl;
+    document.getElementById('setAlertsUrl').value    = settings.alertsUrl;
+    document.getElementById('setAdminPassword').value = settings.adminPassword;
+
+    var bulletins = getItems();
+    var archive   = getArchive();
+    var partners  = getSponsors();
+
+    setHTML('bulletinList', bulletins.length ? bulletins.map(function (item, idx) {
+      return '<div class="list-row">'
+        + '<div><strong>' + esc(item.title) + '</strong></div>'
+        + '<div class="tiny">' + esc(getLabelForLevel(item.level)) + ' \u2022 ' + esc(item.scope || 'All Surrey') + '</div>'
+        + '<p class="muted" style="margin:8px 0;">' + esc(item.text) + '</p>'
+        + '<div class="row-actions">'
+        + '<button class="mini-btn secondary" data-action="up" data-idx="' + idx + '">Move Up</button>'
+        + '<button class="mini-btn secondary" data-action="down" data-idx="' + idx + '">Move Down</button>'
+        + '<button class="mini-btn secondary" data-action="edit" data-id="' + esc(item.id) + '">Edit</button>'
+        + '<button class="mini-btn secondary" data-action="archive" data-id="' + esc(item.id) + '">Archive</button>'
+        + '<button class="mini-btn secondary" data-action="delete" data-id="' + esc(item.id) + '">Delete</button>'
+        + '</div></div>';
+    }).join('') : '<div class="small">No active bulletins.</div>');
+
+    setHTML('archiveList', archive.length ? archive.map(function (item) {
+      return '<div class="list-row">'
+        + '<div><strong>' + esc(item.title) + '</strong></div>'
+        + '<div class="tiny">' + esc(getLabelForLevel(item.level)) + ' \u2022 ' + esc(item.scope || 'All Surrey') + '</div>'
+        + '<p class="muted" style="margin:8px 0;">' + esc(item.text) + '</p>'
+        + '<div class="row-actions">'
+        + '<button class="mini-btn secondary" data-action="restore" data-id="' + esc(item.id) + '">Restore</button>'
+        + '<button class="mini-btn secondary" data-action="delete-arch" data-id="' + esc(item.id) + '">Delete</button>'
+        + '</div></div>';
+    }).join('') : '<div class="small">No archived bulletins.</div>');
+
+    setHTML('partnerList', partners.length ? partners.map(function (p, idx) {
+      return '<div class="list-row">'
+        + '<div><strong>' + esc(p.name) + '</strong></div>'
+        + '<p class="muted" style="margin:8px 0;">' + esc(p.desc || '') + '</p>'
+        + '<div class="tiny">' + esc(p.url || 'No URL') + '</div>'
+        + '<div class="row-actions">'
+        + '<button class="mini-btn secondary" data-action="partner-up" data-idx="' + idx + '">Move Up</button>'
+        + '<button class="mini-btn secondary" data-action="partner-down" data-idx="' + idx + '">Move Down</button>'
+        + '<button class="mini-btn secondary" data-action="partner-edit" data-id="' + esc(p.id) + '">Edit</button>'
+        + '<button class="mini-btn secondary" data-action="partner-delete" data-id="' + esc(p.id) + '">Delete</button>'
+        + '</div></div>';
+    }).join('') : '<div class="small">No partners yet.</div>');
+  }
+
+  function renderAll() {
+    renderHeader();
+    renderDecisionPanel();
+    renderCurrentView();
+    renderImpactScores();
+    renderTimeline();
+    renderForecast();
+    renderAlerts();
+    renderMicroclimates();
+    renderPartnerTags();
+    renderPartnerSpotlight();
+    renderAdminView();
+    var meta = getMeta();
+    updateWindyMap(meta.currentOverlay || 'radar');
+  }
+
+  /* ══════════════ ACTIONS ══════════════ */
+
+  function addBulletin() {
+    var title = document.getElementById('bulletinTitle').value.trim();
+    var text  = document.getElementById('bulletinText').value.trim();
+    var level = document.getElementById('bulletinLevel').value;
+    var scope = document.getElementById('bulletinScope').value.trim();
+    if (!title || !text) { alert('Add both bulletin title and bulletin copy.'); return; }
+    var items = getItems();
+    items.unshift({ id: makeId(), title: title, text: text, level: level, scope: scope, createdAt: new Date().toISOString() });
+    safeWrite(ITEMS_KEY, items);
+    setMeta({ lastEdited: new Date().toISOString() });
+    document.getElementById('bulletinTitle').value = '';
+    document.getElementById('bulletinText').value  = '';
+    document.getElementById('bulletinScope').value = '';
+    document.getElementById('bulletinLevel').value = 'good';
+    renderAll();
+  }
+
+  function editBulletin(id) {
+    var items = getItems();
+    var item  = items.find(function (x) { return x.id === id; });
+    if (!item) return;
+    var nTitle = prompt('Edit bulletin title:', item.title);     if (nTitle === null) return;
+    var nText  = prompt('Edit bulletin copy:',  item.text);      if (nText  === null) return;
+    var nScope = prompt('Edit bulletin scope:', item.scope || ''); if (nScope === null) return;
+    var nLevel = prompt('Edit level: good / warn / bad', item.level); if (nLevel === null) return;
+    item.title = nTitle.trim() || item.title;
+    item.text  = nText.trim()  || item.text;
+    item.scope = nScope.trim();
+    item.level = ['good','warn','bad'].indexOf(nLevel.trim()) !== -1 ? nLevel.trim() : item.level;
+    safeWrite(ITEMS_KEY, items);
+    setMeta({ lastEdited: new Date().toISOString() });
+    renderAll();
+  }
+
+  function deleteBulletin(id) {
+    safeWrite(ITEMS_KEY, getItems().filter(function (x) { return x.id !== id; }));
+    setMeta({ lastEdited: new Date().toISOString() });
+    renderAll();
+  }
+
+  function archiveBulletin(id) {
+    var items   = getItems();
+    var archive = getArchive();
+    var idx     = items.findIndex(function (x) { return x.id === id; });
+    if (idx === -1) return;
+    archive.unshift(items.splice(idx, 1)[0]);
+    safeWrite(ITEMS_KEY, items);
+    safeWrite(ARCHIVE_KEY, archive);
+    setMeta({ lastEdited: new Date().toISOString() });
+    renderAll();
+  }
+
+  function restoreBulletin(id) {
+    var items   = getItems();
+    var archive = getArchive();
+    var idx     = archive.findIndex(function (x) { return x.id === id; });
+    if (idx === -1) return;
+    items.unshift(archive.splice(idx, 1)[0]);
+    safeWrite(ITEMS_KEY, items);
+    safeWrite(ARCHIVE_KEY, archive);
+    setMeta({ lastEdited: new Date().toISOString() });
+    renderAll();
+  }
+
+  function deleteArchivedBulletin(id) {
+    safeWrite(ARCHIVE_KEY, getArchive().filter(function (x) { return x.id !== id; }));
+    setMeta({ lastEdited: new Date().toISOString() });
+    renderAll();
+  }
+
+  function moveItemUp(idx) {
+    var items = getItems();
+    if (idx <= 0) return;
+    var tmp = items[idx - 1]; items[idx - 1] = items[idx]; items[idx] = tmp;
+    safeWrite(ITEMS_KEY, items);
+    renderAll();
+  }
+
+  function moveItemDown(idx) {
+    var items = getItems();
+    if (idx >= items.length - 1) return;
+    var tmp = items[idx + 1]; items[idx + 1] = items[idx]; items[idx] = tmp;
+    safeWrite(ITEMS_KEY, items);
+    renderAll();
+  }
+
+  function addPartner() {
+    var name = document.getElementById('partnerName').value.trim();
+    var desc = document.getElementById('partnerDesc').value.trim();
+    var url  = document.getElementById('partnerUrl').value.trim();
+    if (!name) { alert('Add partner name.'); return; }
+    var partners = getSponsors();
+    partners.push({ id: makeId(), name: name, desc: desc, url: url });
+    safeWrite(SPONSOR_KEY, partners);
+    setMeta({ lastEdited: new Date().toISOString() });
+    document.getElementById('partnerName').value = '';
+    document.getElementById('partnerDesc').value = '';
+    document.getElementById('partnerUrl').value  = '';
+    renderAll();
+  }
+
+  function editPartner(id) {
+    var partners = getSponsors();
+    var item = partners.find(function (x) { return x.id === id; });
+    if (!item) return;
+    var nName = prompt('Edit partner name:',        item.name);    if (nName === null) return;
+    var nDesc = prompt('Edit partner description:', item.desc || ''); if (nDesc === null) return;
+    var nUrl  = prompt('Edit partner URL:',         item.url  || ''); if (nUrl  === null) return;
+    item.name = nName.trim() || item.name;
+    item.desc = nDesc.trim();
+    item.url  = nUrl.trim();
+    safeWrite(SPONSOR_KEY, partners);
+    setMeta({ lastEdited: new Date().toISOString() });
+    renderAll();
+  }
+
+  function deletePartner(id) {
+    safeWrite(SPONSOR_KEY, getSponsors().filter(function (x) { return x.id !== id; }));
+    setMeta({ lastEdited: new Date().toISOString() });
+    renderAll();
+  }
+
+  function movePartnerUp(idx) {
+    var p = getSponsors();
+    if (idx <= 0) return;
+    var tmp = p[idx - 1]; p[idx - 1] = p[idx]; p[idx] = tmp;
+    safeWrite(SPONSOR_KEY, p);
+    renderAll();
+  }
+
+  function movePartnerDown(idx) {
+    var p = getSponsors();
+    if (idx >= p.length - 1) return;
+    var tmp = p[idx + 1]; p[idx + 1] = p[idx]; p[idx] = tmp;
+    safeWrite(SPONSOR_KEY, p);
+    renderAll();
+  }
+
+  function saveSettings() {
+    var next = {
+      title:          document.getElementById('setTitle').value.trim()        || DEFAULT_SETTINGS.title,
+      subtitle:       document.getElementById('setSubtitle').value.trim()     || DEFAULT_SETTINGS.subtitle,
+      explainer:      document.getElementById('setExplainer').value.trim()    || DEFAULT_SETTINGS.explainer,
+      locationName:   document.getElementById('setLocationName').value.trim() || DEFAULT_SETTINGS.locationName,
+      timezone:       document.getElementById('setTimezone').value.trim()     || DEFAULT_SETTINGS.timezone,
+      latitude:       Number(document.getElementById('setLat').value)         || DEFAULT_SETTINGS.latitude,
+      longitude:      Number(document.getElementById('setLon').value)         || DEFAULT_SETTINGS.longitude,
+      windyZoom:      Number(document.getElementById('setZoom').value)        || DEFAULT_SETTINGS.windyZoom,
+      refreshMinutes: Number(document.getElementById('setRefresh').value)     || DEFAULT_SETTINGS.refreshMinutes,
+      forecastUrl:    document.getElementById('setForecastUrl').value.trim()  || DEFAULT_SETTINGS.forecastUrl,
+      alertsUrl:      document.getElementById('setAlertsUrl').value.trim()    || DEFAULT_SETTINGS.alertsUrl,
+      adminPassword:  document.getElementById('setAdminPassword').value.trim() || DEFAULT_SETTINGS.adminPassword
+    };
+    safeWrite(SETTINGS_KEY, next);
+    setMeta({ lastEdited: new Date().toISOString() });
+    renderAll();
+    loadWeatherData(true);
+  }
+
+  function unlockAdmin() {
+    var settings = getSettings();
+    var entered  = document.getElementById('adminPasswordInput').value;
+    if (entered === settings.adminPassword) {
+      safeWrite(ADMIN_KEY, true);
+      renderAll();
+      document.getElementById('adminShell').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      alert('Incorrect password.');
+    }
+  }
+
+  function lockAdmin() {
+    safeWrite(ADMIN_KEY, false);
+    renderAll();
+    document.getElementById('adminPasswordInput').value = '';
+  }
+
+  function exportBackup() {
+    var data = {
+      items: getItems(), sponsors: getSponsors(), archive: getArchive(),
+      settings: getSettings(), meta: getMeta(),
+      exportedAt: new Date().toISOString(), version: getMeta().version
+    };
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'wbn-weathercast-surrey-backup.json';
+    a.click();
+  }
+
+  function importBackup(json) {
+    try {
+      var data = JSON.parse(json);
+      if (data.items)    safeWrite(ITEMS_KEY,    data.items);
+      if (data.sponsors) safeWrite(SPONSOR_KEY,  data.sponsors);
+      if (data.archive)  safeWrite(ARCHIVE_KEY,  data.archive);
+      if (data.settings) safeWrite(SETTINGS_KEY, Object.assign({}, DEFAULT_SETTINGS, data.settings));
+      if (data.meta)     safeWrite(META_KEY,      Object.assign({}, DEFAULT_META, data.meta));
+      renderAll();
+      loadWeatherData(true);
+      alert('Backup imported.');
+    } catch (e) {
+      alert('Invalid backup file.');
+    }
+  }
+
+  function scheduleRefresh() {
+    var settings = getSettings();
+    var mins = Math.max(1, Number(settings.refreshMinutes || 15));
+    var ms   = mins * 60 * 1000;
+    var nextAt = Date.now() + ms;
+
+    if (refreshTimerId)     clearTimeout(refreshTimerId);
+    if (countdownIntervalId) clearInterval(countdownIntervalId);
+
+    refreshTimerId = setTimeout(function () { loadWeatherData(false); }, ms);
+
+    countdownIntervalId = setInterval(function () {
+      var diff = nextAt - Date.now();
+      if (diff <= 0) { setText('refreshStatus', 'Refreshing now\u2026'); clearInterval(countdownIntervalId); return; }
+      var total = Math.floor(diff / 1000);
+      var mm = String(Math.floor(total / 60)).padStart(2, '0');
+      var ss = String(total % 60).padStart(2, '0');
+      setText('refreshStatus', 'Refreshing in ' + mm + ':' + ss);
+    }, 1000);
+  }
+
+  /* ══════════════ EVENT WIRING — all via addEventListener ══════════════ */
+
+  document.getElementById('unlockAdminBtn').addEventListener('click', unlockAdmin);
+  document.getElementById('lockAdminBtn').addEventListener('click',   lockAdmin);
+  document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
+  document.getElementById('addBulletinBtn').addEventListener('click',  addBulletin);
+  document.getElementById('addPartnerBtn').addEventListener('click',   addPartner);
+  document.getElementById('exportBackupBtn').addEventListener('click', exportBackup);
+
+  /* Admin password — Enter key */
+  document.getElementById('adminPasswordInput').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') unlockAdmin();
+  });
+
+  /* Import backup */
+  document.getElementById('importBackupInput').addEventListener('change', function (e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () { importBackup(reader.result); };
+    reader.readAsText(file);
+  });
+
+  /* Map overlay tabs */
+  document.querySelectorAll('.tab-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () { updateWindyMap(btn.dataset.overlay); });
+  });
+
+  /* Event delegation — bulletin list */
+  document.getElementById('bulletinList').addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    var action = btn.dataset.action;
+    var id     = btn.dataset.id;
+    var idx    = Number(btn.dataset.idx);
+    if (action === 'up')      moveItemUp(idx);
+    if (action === 'down')    moveItemDown(idx);
+    if (action === 'edit')    editBulletin(id);
+    if (action === 'archive') archiveBulletin(id);
+    if (action === 'delete')  deleteBulletin(id);
+  });
+
+  /* Event delegation — archive list */
+  document.getElementById('archiveList').addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    var action = btn.dataset.action;
+    var id     = btn.dataset.id;
+    if (action === 'restore')    restoreBulletin(id);
+    if (action === 'delete-arch') deleteArchivedBulletin(id);
+  });
+
+  /* Event delegation — partner list */
+  document.getElementById('partnerList').addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    var action = btn.dataset.action;
+    var id     = btn.dataset.id;
+    var idx    = Number(btn.dataset.idx);
+    if (action === 'partner-up')     movePartnerUp(idx);
+    if (action === 'partner-down')   movePartnerDown(idx);
+    if (action === 'partner-edit')   editPartner(id);
+    if (action === 'partner-delete') deletePartner(id);
+  });
+
+  /* ══════════════ INIT ══════════════ */
+  renderAll();
+  loadWeatherData(true);
+
+})();
+</script>
+</body>
+</html>
