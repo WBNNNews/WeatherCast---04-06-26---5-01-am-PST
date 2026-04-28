@@ -1,0 +1,999 @@
+<!-- WBN WeatherCast Surrey v3.1d — Ghost HTML block embed -->
+<!-- No html/head/body tags. All CSS scoped to #wbn-wc. Zero page bleed. -->
+<!-- v3.1d fixes: sc()/scores variable collision that crashed render, Promise.all bracket bug -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Source+Code+Pro:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+#wbn-wc {
+  all: initial;
+  display: block;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #123246;
+  background: linear-gradient(160deg, #dff5ff 0%, #c8ecfb 100%);
+  border-radius: 20px;
+  padding: 18px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+#wbn-wc * { box-sizing: border-box; margin: 0; padding: 0; }
+
+#wbn-wc .p { background: #fff; border: 1px solid #b7dfef; border-radius: 16px; overflow: hidden; margin-bottom: 14px; box-shadow: 0 6px 24px rgba(18,50,70,.07); }
+#wbn-wc .p-hd { background: rgba(255,255,255,.6); border-bottom: 1px solid #b7dfef; padding: 12px 16px; }
+#wbn-wc .p-bd { padding: 16px; }
+#wbn-wc .hero-p { background: linear-gradient(135deg, rgba(89,194,235,.12), rgba(255,255,255,.96)); }
+
+#wbn-wc h1 { font-family: 'Oswald', Arial, sans-serif; font-size: 30px; font-weight: 700; letter-spacing: -.01em; line-height: 1.15; color: #123246; margin-bottom: 8px; display: block; }
+#wbn-wc h2 { font-size: 16px; font-weight: 700; line-height: 1.2; color: #123246; margin-bottom: 3px; display: block; }
+#wbn-wc h3 { font-size: 14px; font-weight: 700; color: #123246; margin-bottom: 8px; display: block; }
+#wbn-wc p  { display: block; margin-bottom: 10px; line-height: 1.5; }
+#wbn-wc ul { display: block; padding-left: 18px; }
+#wbn-wc li { display: list-item; margin-bottom: 7px; line-height: 1.45; font-size: 13px; color: #123246; }
+
+#wbn-wc .eyebrow { display: block; font-family: 'Oswald', Arial, sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #1f8db8; margin-bottom: 6px; }
+#wbn-wc .muted { color: #426679; }
+#wbn-wc .sm { font-size: 12px; color: #426679; display: block; }
+#wbn-wc .xs { font-size: 11px; color: #426679; display: block; }
+#wbn-wc .mono { font-family: 'Source Code Pro', monospace; }
+
+#wbn-wc .sh  { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+#wbn-wc .shl { flex: 1 1 auto; min-width: 0; }
+#wbn-wc .shr { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; }
+
+#wbn-wc .badge { display: inline-flex; justify-content: center; align-items: center; width: 18px; height: 18px; border-radius: 50%; background: #1f8db8; color: #fff; font-size: 10px; font-weight: 700; vertical-align: middle; margin-left: 4px; }
+
+#wbn-wc .pills { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+#wbn-wc .pill { background: #eef9fe; border: 1px solid #b7dfef; border-radius: 999px; padding: 5px 12px; font-family: 'Source Code Pro', monospace; font-size: 11px; font-weight: 700; color: #123246; display: inline-block; }
+
+#wbn-wc .tw-wrap { display: flex; align-items: center; gap: 10px; border: 1px solid #b7dfef; background: linear-gradient(180deg,#fff,#eef9fe); border-radius: 12px; padding: 9px 14px; margin-top: 12px; overflow: hidden; }
+#wbn-wc .tw-lbl { font-family: 'Oswald', Arial, sans-serif; font-size: 10px; font-weight: 700; color: #1f8db8; white-space: nowrap; text-transform: uppercase; letter-spacing: .1em; flex: 0 0 auto; }
+#wbn-wc .tw-vp { overflow: hidden; width: 100%; height: 20px; min-width: 0; }
+#wbn-wc .tw-track { display: inline-block; white-space: nowrap; padding-left: 100%; animation: wc-tick 32s linear infinite; font-family: 'Source Code Pro', monospace; font-size: 12px; font-weight: 700; color: #123246; }
+@keyframes wc-tick { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+
+#wbn-wc .ptag { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; border: 1px solid #b7dfef; background: #eef9fe; font-size: 11px; color: #426679; font-weight: 700; white-space: nowrap; }
+#wbn-wc .ptag a { color: #1f8db8; text-decoration: none; font-weight: 700; }
+
+#wbn-wc .g  { display: grid; gap: 12px; }
+#wbn-wc .g2 { grid-template-columns: 1fr 1fr; }
+#wbn-wc .g3 { grid-template-columns: repeat(3,1fr); }
+#wbn-wc .g4 { grid-template-columns: repeat(4,1fr); }
+#wbn-wc .g6 { grid-template-columns: repeat(6,1fr); }
+#wbn-wc .g7 { grid-template-columns: repeat(7,1fr); }
+
+#wbn-wc .card { border: 1px solid #b7dfef; border-radius: 14px; padding: 13px; background: linear-gradient(180deg,#fff,#eaf8fe); }
+
+#wbn-wc .mlbl { font-family: 'Oswald', Arial, sans-serif; font-size: 10px; font-weight: 700; color: #1f8db8; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 5px; display: block; }
+#wbn-wc .mval { font-size: 30px; font-weight: 700; letter-spacing: -.02em; color: #123246; margin-bottom: 4px; display: block; }
+#wbn-wc .msub { font-size: 12px; color: #426679; display: block; }
+
+#wbn-wc .brief-box { border: 1px solid #b7dfef; background: linear-gradient(180deg,#fff,#eef9fe); border-radius: 14px; padding: 15px; }
+
+#wbn-wc .dlead { font-size: 15px; font-weight: 700; color: #123246; margin-bottom: 12px; line-height: 1.45; display: block; }
+#wbn-wc .dgrid { display: grid; grid-template-columns: 1.2fr .9fr .9fr .8fr; gap: 11px; }
+#wbn-wc .chip { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; border: 1px solid #b7dfef; background: #eef9fe; font-family: 'Oswald', Arial, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: .08em; color: #1f8db8; text-transform: uppercase; margin-bottom: 7px; }
+#wbn-wc .dcopy { color: #426679; line-height: 1.45; font-size: 13px; display: block; }
+
+#wbn-wc .iscore { font-size: 21px; font-weight: 700; margin: 4px 0; display: block; }
+#wbn-wc .sg { color: #13795b; }
+#wbn-wc .sw { color: #9a6700; }
+#wbn-wc .sb { color: #a61b1b; }
+
+#wbn-wc .timeline { display: grid; grid-template-columns: repeat(8,1fr); gap: 8px; overflow-x: auto; }
+#wbn-wc .ti { min-width: 90px; text-align: center; }
+
+#wbn-wc .fday-name { font-family: 'Oswald', Arial, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #1f8db8; margin-bottom: 4px; display: block; }
+#wbn-wc .fday-temp { font-size: 18px; font-weight: 700; margin: 6px 0; color: #123246; display: block; }
+
+#wbn-wc .map-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 9px; }
+#wbn-wc .map-frame { width: 100%; height: 480px; border: 1px solid #b7dfef; border-radius: 14px; overflow: hidden; background: #eef9fe; display: block; }
+#wbn-wc .map-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+#wbn-wc button, #wbn-wc a.btn-s, #wbn-wc a.btn-p { display: inline-flex; align-items: center; border: none; cursor: pointer; font-family: Arial, Helvetica, sans-serif; font-weight: 700; text-decoration: none; transition: background .12s; }
+#wbn-wc .btn-p  { padding: 9px 15px; font-size: 13px; border-radius: 11px; background: #59c2eb; color: #fff; box-shadow: 0 3px 10px rgba(18,50,70,.1); }
+#wbn-wc .btn-s  { padding: 9px 15px; font-size: 13px; border-radius: 11px; background: #eef9fe; color: #123246; border: 1px solid #b7dfef; }
+#wbn-wc .tbtn-a { padding: 7px 12px; font-size: 12px; border-radius: 11px; background: #1f8db8; color: #fff; border: none; }
+#wbn-wc .tbtn-s { padding: 7px 12px; font-size: 12px; border-radius: 11px; background: #eef9fe; color: #123246; border: 1px solid #b7dfef; }
+#wbn-wc .mbtn   { padding: 5px 8px;  font-size: 11px; border-radius: 9px;  background: #eef9fe; color: #123246; border: 1px solid #b7dfef; }
+#wbn-wc .btn-p:hover, #wbn-wc .tbtn-a:hover { background: #1a7aaa; }
+#wbn-wc .btn-s:hover, #wbn-wc .tbtn-s:hover { background: #c8ecfb; }
+
+#wbn-wc .alerts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+#wbn-wc .atag { display: inline-block; padding: 3px 10px; border-radius: 999px; font-family: 'Oswald', Arial, sans-serif; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 7px; }
+#wbn-wc .tg { background: #e8f7ee; color: #13795b; }
+#wbn-wc .tw { background: #fff5e8; color: #9a6700; }
+#wbn-wc .tb { background: #fdf0f0; color: #a61b1b; }
+
+#wbn-wc .field { margin-bottom: 9px; }
+#wbn-wc .field label { display: block; margin-bottom: 3px; font-family: 'Oswald', Arial, sans-serif; font-size: 10px; font-weight: 700; color: #1f8db8; text-transform: uppercase; letter-spacing: .08em; }
+#wbn-wc .field input, #wbn-wc .field textarea, #wbn-wc .field select { display: block; width: 100%; min-height: 38px; font-size: 13px; padding: 7px 10px; border: 1px solid #b7dfef; border-radius: 10px; font-family: Arial, Helvetica, sans-serif; background: #fff; color: #123246; outline: none; }
+#wbn-wc .field input:focus, #wbn-wc .field textarea:focus, #wbn-wc .field select:focus { border-color: #1f8db8; }
+#wbn-wc .field textarea { min-height: 80px; resize: vertical; }
+
+#wbn-wc .admin-shell { display: none; }
+#wbn-wc .admin-shell.open { display: block; }
+#wbn-wc .agrid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 14px; }
+#wbn-wc .acard { border: 1px solid #b7dfef; border-radius: 13px; padding: 13px; background: #fff; margin-bottom: 12px; }
+#wbn-wc .lrow  { border: 1px solid #b7dfef; border-radius: 11px; padding: 10px; background: #fff; margin-bottom: 7px; }
+#wbn-wc .row-acts { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+#wbn-wc .frow { display: flex; flex-wrap: wrap; gap: 9px; align-items: flex-end; }
+
+#wbn-wc .footer { font-family: 'Source Code Pro', monospace; font-size: 11px; color: #426679; text-align: left; margin-top: 16px; display: block; }
+#wbn-wc .changelog { display: block; padding-left: 16px; }
+#wbn-wc .changelog li { font-size: 12px; margin-bottom: 5px; }
+#wbn-wc .loader { color: #426679; font-size: 13px; display: block; }
+
+@media (max-width: 1080px) {
+  #wbn-wc .dgrid, #wbn-wc .g4, #wbn-wc .g6, #wbn-wc .g7, #wbn-wc .alerts-grid, #wbn-wc .agrid { grid-template-columns: 1fr 1fr; }
+  #wbn-wc .timeline { grid-template-columns: repeat(4,1fr); }
+}
+@media (max-width: 720px) {
+  #wbn-wc { padding: 10px; border-radius: 14px; }
+  #wbn-wc .g2, #wbn-wc .g3, #wbn-wc .g4, #wbn-wc .g6, #wbn-wc .g7, #wbn-wc .dgrid, #wbn-wc .agrid, #wbn-wc .alerts-grid { grid-template-columns: 1fr; }
+  #wbn-wc .timeline { grid-template-columns: repeat(2,1fr); }
+  #wbn-wc .map-frame { height: 360px; }
+  #wbn-wc .mval { font-size: 24px; }
+  #wbn-wc h1 { font-size: 22px; }
+  #wbn-wc .tw-track { animation-duration: 20s; }
+}
+</style>
+
+<div id="wbn-wc">
+
+  <!-- HERO -->
+  <div class="p hero-p">
+    <div class="p-bd">
+      <span class="eyebrow">WBNN WeatherCast™</span>
+      <h1 id="wc-heroTitle">WeatherCast Terminal™ – Surrey</h1>
+      <p id="wc-heroSubtitle" class="muted" style="font-size:14px;line-height:1.55;max-width:760px;">A dedicated city weather intelligence dashboard delivering real-time atmospheric conditions, forecasts, environmental signals, and city impact insights for Surrey, BC.</p>
+      <div class="pills">
+        <span class="pill">Dynamic Weather Data <span class="badge">D</span></span>
+        <span class="pill" id="wc-refresh">Refreshing in 15:00</span>
+        <span class="pill" id="wc-updated">Updated: --</span>
+        <span class="pill">Source: Open-Meteo + Windy</span>
+      </div>
+      <div class="tw-wrap">
+        <span class="tw-lbl">Surrey Update</span>
+        <div class="tw-vp"><span class="tw-track" id="wc-ticker">Loading live update…</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DECISION -->
+  <div class="p">
+    <div class="p-hd">
+      <div class="sh">
+        <div class="shl"><h2>Today's Decision Panel <span class="badge">D</span></h2><span class="sm">A plain-language interpretation layer that turns today's weather into practical guidance.</span></div>
+      </div>
+    </div>
+    <div class="p-bd">
+      <span class="dlead" id="wc-dlead">Generating today's decision summary…</span>
+      <div class="dgrid">
+        <div class="card"><span class="mlbl">What To Do</span><ul id="wc-dactions"><li>Loading…</li></ul></div>
+        <div class="card"><span class="chip">Best Window</span><span class="dcopy" id="wc-dwindow">Checking the best time to be outside…</span></div>
+        <div class="card"><span class="chip">Commute Note</span><span class="dcopy" id="wc-dcommute">Assessing likely travel friction…</span></div>
+        <div class="card"><span class="chip">Forecast Confidence</span><span class="dcopy" id="wc-dconfidence">Calculating forecast confidence…</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONDITIONS -->
+  <div class="p">
+    <div class="p-hd">
+      <div class="sh">
+        <div class="shl"><h2>Surrey Conditions Panel <span class="badge">D</span></h2><span class="sm">Live current conditions for Surrey, British Columbia.</span></div>
+        <div class="shr"><span class="ptag" id="wc-pt-conditions"></span></div>
+      </div>
+    </div>
+    <div class="p-bd">
+      <div class="g g4">
+        <div class="card"><span class="mlbl">Temperature</span><span class="mval" id="wc-temp">--°C</span><span class="msub" id="wc-cond">Loading…</span></div>
+        <div class="card"><span class="mlbl">Feels Like</span><span class="mval" id="wc-feels">--°C</span><span class="msub" id="wc-humid">Humidity --%</span></div>
+        <div class="card"><span class="mlbl">Wind</span><span class="mval" id="wc-wind">-- km/h</span><span class="msub" id="wc-wdir">Direction --</span></div>
+        <div class="card"><span class="mlbl">Rain Risk</span><span class="mval" id="wc-rain">--%</span><span class="msub" id="wc-hilo">High / Low --° / --°</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BRIEF -->
+  <div class="p">
+    <div class="p-hd">
+      <div class="sh">
+        <div class="shl"><h2>Surrey Weather Brief <span class="badge">D</span></h2><span class="sm">A plain-language interpretation of the data for Surrey readers.</span></div>
+        <div class="shr"><span class="ptag" id="wc-pt-brief"></span></div>
+      </div>
+    </div>
+    <div class="p-bd">
+      <div class="brief-box">
+        <p id="wc-brief" class="muted">Loading forecast summary…</p>
+        <div class="g g3" style="margin-top:11px;">
+          <div class="card"><span class="mlbl">Sunrise / Sunset</span><span style="font-weight:700;font-size:14px;display:block;" id="wc-sun">-- / --</span></div>
+          <div class="card"><span class="mlbl">UV Peak</span><span style="font-weight:700;font-size:14px;display:block;" id="wc-uv">--</span></div>
+          <div class="card"><span class="mlbl">Precipitation Today</span><span style="font-weight:700;font-size:14px;display:block;" id="wc-precip">-- mm</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMPACT -->
+  <div class="p">
+    <div class="p-hd">
+      <div class="sh">
+        <div class="shl"><h2>Surrey Impact Readout <span class="badge">D</span></h2><span class="sm">A fast planning layer for commutes, jobsites, events, and outdoor use.</span></div>
+        <div class="shr"><span class="ptag" id="wc-pt-impact"></span></div>
+      </div>
+    </div>
+    <div class="p-bd">
+      <div class="g g6">
+        <div class="card"><span class="mlbl">Commute Risk</span><span class="iscore" id="wc-sCommute">Loading…</span><span class="xs" id="wc-tCommute">Assessing rain, visibility, and wind.</span></div>
+        <div class="card"><span class="mlbl">Outdoor Score</span><span class="iscore" id="wc-sOutdoor">Loading…</span><span class="xs" id="wc-tOutdoor">Checking comfort and dry windows.</span></div>
+        <div class="card"><span class="mlbl">Marine</span><span class="iscore" id="wc-sMarine">Loading…</span><span class="xs" id="wc-tMarine">Looking at wind and coastal exposure.</span></div>
+        <div class="card"><span class="mlbl">Air Quality</span><span class="iscore sw" id="wc-sAir">Watch</span><span class="xs" id="wc-tAir">Local AQI feed can be layered in later.</span></div>
+        <div class="card"><span class="mlbl">Event Readiness</span><span class="iscore" id="wc-sEvent">Loading…</span><span class="xs" id="wc-tEvent">Checking rain timing and temperature.</span></div>
+        <div class="card"><span class="mlbl">Construction</span><span class="iscore" id="wc-sBuild">Loading…</span><span class="xs" id="wc-tBuild">Watching rain and wind disruption risk.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="p">
+    <div class="p-hd">
+      <div class="sh">
+        <div class="shl"><h2>Today Timeline View <span class="badge">D</span></h2><span class="sm">How the day unfolds hour by hour — rain timing, wind shifts, and usable outdoor windows.</span></div>
+        <div class="shr"><span class="ptag" id="wc-pt-timeline"></span></div>
+      </div>
+    </div>
+    <div class="p-bd">
+      <div class="timeline" id="wc-timeline"><span class="loader">Loading timeline…</span></div>
+    </div>
+  </div>
+
+  <!-- MAP -->
+  <div class="p">
+    <div class="p-hd">
+      <div class="sh">
+        <div class="shl"><h2>Weather Radar View <span class="badge">D</span></h2><span class="sm">Switch between radar, satellite, wind, cloud, rain, and temperature overlays.</span></div>
+        <div class="shr"><span class="ptag" id="wc-pt-map"></span></div>
+      </div>
+    </div>
+    <div class="p-bd">
+      <div class="map-bar" id="wc-mapbar">
+        <button class="tbtn-a" data-ov="radar">Radar</button>
+        <button class="tbtn-s" data-ov="satellite">Satellite</button>
+        <button class="tbtn-s" data-ov="wind">Wind</button>
+        <button class="tbtn-s" data-ov="clouds">Clouds</button>
+        <button class="tbtn-s" data-ov="rain">Rain</button>
+        <button class="tbtn-s" data-ov="temp">Temperature</button>
+      </div>
+      <div class="map-frame"><iframe id="wc-mapframe" title="Windy Weather Map" loading="lazy"></iframe></div>
+      <span class="sm mono" id="wc-mapstatus" style="margin-top:7px;">Radar view active.</span>
+    </div>
+  </div>
+
+  <!-- FORECAST -->
+  <div class="p">
+    <div class="p-hd">
+      <div class="sh">
+        <div class="shl"><h2>7-Day Outlook <span class="badge">D</span></h2><span class="sm">The pattern of the week ahead — temperature trend, precipitation risk, and practical planning value.</span></div>
+        <div class="shr"><span class="ptag" id="wc-pt-forecast"></span></div>
+      </div>
+    </div>
+    <div class="p-bd">
+      <div class="g g7" id="wc-forecast"><span class="loader">Loading 7-day forecast…</span></div>
+    </div>
+  </div>
+
+  <!-- ALERTS -->
+  <div class="p">
+    <div class="p-hd">
+      <div class="sh">
+        <div class="shl"><h2>Surrey Alerts &amp; Advisories</h2><span class="sm">Automated threshold detection plus admin bulletin override.</span></div>
+        <div class="shr"><span class="ptag" id="wc-pt-alerts"></span></div>
+      </div>
+    </div>
+    <div class="p-bd">
+      <div class="alerts-grid">
+        <div class="card">
+          <span id="wc-aAutoTag" class="atag tg">Monitoring</span>
+          <h3>Automated Weather Risk Readout</h3>
+          <p id="wc-aAutoText" class="muted">Reviewing forecast thresholds now.</p>
+          <span class="sm" id="wc-aAutoMeta">Rain, wind, and temperature triggers are being checked.</span>
+        </div>
+        <div class="card">
+          <span id="wc-aManTag" class="atag tg">Official Links Ready</span>
+          <h3>Official Alert Access + Admin Override</h3>
+          <p id="wc-aManText" class="muted">Use the buttons below to open official sources or post a local bulletin.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">
+            <a id="wc-ecForecast" class="btn-s" href="#" target="_blank" rel="noopener">View Official Forecast</a>
+            <a id="wc-ecAlerts" class="btn-s" href="#" target="_blank" rel="noopener">Environment Canada</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MICRO -->
+  <div class="p">
+    <div class="p-hd">
+      <div class="sh">
+        <div class="shl"><h2>Surrey Microclimates <span class="badge">D</span></h2><span class="sm">Hyperlocal scan across Whalley, Cloverdale, South Surrey, and Newton.</span></div>
+        <div class="shr"><span class="ptag" id="wc-pt-micro"></span></div>
+      </div>
+    </div>
+    <div class="p-bd">
+      <div class="g g4" id="wc-micro"><span class="loader">Loading neighbourhood conditions…</span></div>
+    </div>
+  </div>
+
+  <!-- PARTNERS -->
+  <div class="p">
+    <div class="p-hd">
+      <div class="sh">
+        <div class="shl"><h2>Partner Spotlight</h2><span class="sm">Featured local partners and rotating sponsor placements across the WeatherCast.</span></div>
+        <div class="shr"><span class="ptag" id="wc-pt-partner"></span></div>
+      </div>
+    </div>
+    <div class="p-bd">
+      <div class="g g3" id="wc-partners">
+        <div class="card"><h3>Open Partner Slot</h3><p class="muted" style="font-size:13px;">Add partner cards from the admin console.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <div class="p">
+    <div class="p-hd"><h2>About WeatherCast Terminal™</h2></div>
+    <div class="p-bd"><p class="muted" style="font-size:13px;" id="wc-about">WeatherCast Terminal™ is a live city weather intelligence dashboard built to surface current conditions, forecast shifts, and practical local impact signals in one place — so readers can see what's happening now and make smarter day-to-day decisions.</p></div>
+  </div>
+
+  <!-- ADMIN ACCESS -->
+  <div class="p">
+    <div class="p-hd"><h2>Admin Access</h2><span class="sm">Use the password to open the private WeatherCast control panel.</span></div>
+    <div class="p-bd">
+      <div class="g g2">
+        <div class="field"><label for="wc-pwd">Admin Password</label><input id="wc-pwd" type="password" placeholder="Enter admin password"></div>
+        <div class="frow">
+          <button class="btn-p" id="wc-unlock">Open Admin Console</button>
+          <button class="btn-s" id="wc-lock">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN SHELL -->
+  <div class="p admin-shell" id="wc-adminShell">
+    <div class="p-hd"><h2>Admin Console</h2><span class="sm">Settings, partners, bulletins, backup, import, archive, restore, and continuity controls.</span></div>
+    <div class="p-bd">
+      <div class="agrid">
+        <div>
+          <div class="acard">
+            <h3>Platform Settings</h3>
+            <div class="field"><label>Hero Title</label><input id="wc-setTitle"></div>
+            <div class="field"><label>Hero Subtitle</label><textarea id="wc-setSubtitle"></textarea></div>
+            <div class="field"><label>Explainer Copy</label><textarea id="wc-setExplainer"></textarea></div>
+            <div class="g g2">
+              <div class="field"><label>Location Name</label><input id="wc-setLoc"></div>
+              <div class="field"><label>Timezone</label><input id="wc-setTZ"></div>
+            </div>
+            <div class="g g2">
+              <div class="field"><label>Latitude</label><input id="wc-setLat" type="number" step="0.0001"></div>
+              <div class="field"><label>Longitude</label><input id="wc-setLon" type="number" step="0.0001"></div>
+            </div>
+            <div class="g g2">
+              <div class="field"><label>Windy Zoom</label><input id="wc-setZoom" type="number" step="1"></div>
+              <div class="field"><label>Refresh Minutes</label><input id="wc-setRefresh" type="number" step="1"></div>
+            </div>
+            <div class="g g2">
+              <div class="field"><label>Official Forecast URL</label><input id="wc-setFcUrl"></div>
+              <div class="field"><label>Official Alerts URL</label><input id="wc-setAlUrl"></div>
+            </div>
+            <div class="field"><label>Admin Password</label><input id="wc-setPass" type="text"></div>
+            <button class="btn-p" id="wc-saveSettings">Save Settings</button>
+          </div>
+          <div class="acard">
+            <h3>Manual Bulletin / Alert Override</h3>
+            <div class="field"><label>Bulletin Title</label><input id="wc-bTitle" placeholder="Example: Wind advisory for Newton routes"></div>
+            <div class="field"><label>Bulletin Copy</label><textarea id="wc-bText" placeholder="Short local interpretation for Surrey readers."></textarea></div>
+            <div class="g g2">
+              <div class="field"><label>Status</label><select id="wc-bLevel"><option value="good">Monitoring</option><option value="warn">Advisory</option><option value="bad">Warning</option></select></div>
+              <div class="field"><label>Applies To</label><input id="wc-bScope" placeholder="Whalley / South Surrey / All Surrey"></div>
+            </div>
+            <button class="btn-p" id="wc-addBulletin">Add Bulletin</button>
+          </div>
+          <div class="acard">
+            <h3>Partner Manager</h3>
+            <div class="field"><label>Partner Name</label><input id="wc-pName"></div>
+            <div class="field"><label>Partner Description</label><textarea id="wc-pDesc"></textarea></div>
+            <div class="field"><label>Partner URL</label><input id="wc-pUrl"></div>
+            <button class="btn-p" id="wc-addPartner">Add Partner</button>
+          </div>
+          <div class="acard">
+            <h3>Backup &amp; Continuity</h3>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn-p" id="wc-export">Export Backup</button>
+              <label class="btn-s" style="cursor:pointer;display:inline-flex;align-items:center;">Import Backup<input id="wc-import" type="file" accept=".json" style="display:none;"></label>
+            </div>
+            <span class="sm" style="margin-top:7px;display:block;">Includes settings, partners, archive, bulletins, and metadata.</span>
+          </div>
+        </div>
+        <div>
+          <div class="acard"><h3>Active Bulletins</h3><div id="wc-bulletinList"></div></div>
+          <div class="acard"><h3>Archived Bulletins</h3><div id="wc-archiveList"></div></div>
+          <div class="acard"><h3>Active Partners</h3><div id="wc-partnerList"></div></div>
+          <div class="acard">
+            <h3>Changelog</h3>
+            <ul class="changelog">
+              <li><strong>v2.0</strong> — First dynamic build: live weather engine, admin, sponsors, bulletins, backup, archive/restore.</li>
+              <li><strong>v2.1</strong> — Rebuilt layout, ticker, Weather Brief, rotating partner tags, partner manager.</li>
+              <li><strong>v3.0</strong> — Decision Panel with interpretation layer, action prompts, best window, commute note, forecast confidence.</li>
+              <li><strong>v3.0e/f</strong> — Layout centering and footer fixes.</li>
+              <li><strong>v3.1</strong> — Surrey rebuild. WBN Style Guide v3.1: Robin Blue palette, Oswald + Source Code Pro, frosted headers, contrast-safe status colours, IIFE + event delegation.</li>
+              <li><strong>v3.1b</strong> — Ghost bleed fix. Pure snippet, all CSS scoped to #wbn-wc, all:initial isolation.</li>
+              <li><strong>v3.1c</strong> — Fixed Promise.all bracket bug silently breaking all weather data fetches.</li>
+              <li><strong>v3.1d</strong> — Fixed variable name collision: scoreClass fn was shadowed by scores object, causing TypeError crash on every render cycle.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <span class="footer" id="wc-footer">WBN Platform v3.1d | WeatherCast™ – Surrey</span>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── storage keys ── */
+  var K = { items: 'wc_su_items', sp: 'wc_su_sp', admin: 'wc_su_admin', arch: 'wc_su_arch', cfg: 'wc_su_cfg', meta: 'wc_su_meta' };
+
+  /* ── defaults ── */
+  var DC = {
+    title: 'WeatherCast Terminal\u2122 \u2013 Surrey',
+    subtitle: 'A dedicated city weather intelligence dashboard delivering real-time atmospheric conditions, forecasts, environmental signals, and city impact insights for Surrey, BC.',
+    explainer: 'WeatherCast Terminal\u2122 is a live city weather intelligence dashboard built to surface current conditions, forecast shifts, and practical local impact signals in one place\u2014so readers can see what\u2019s happening now and make smarter day-to-day decisions.',
+    loc: 'Surrey, BC', tz: 'America/Vancouver',
+    lat: 49.1913, lon: -122.8490, zoom: 10, refresh: 15,
+    fcUrl: 'https://weather.gc.ca/city/pages/bc-79_metric_e.html',
+    alUrl: 'https://weather.gc.ca/warnings/index_e.html?prov=bc',
+    pass: 'surreyweather'
+  };
+  var DM = { ver: 'v3.1d', ov: 'radar' };
+  var DSP = [{ id: uid(), name: 'Open Partner Slot', desc: 'Feature your brand inside the Surrey WeatherCast.', url: '' }];
+
+  /* ── utils ── */
+  function uid() { return 'x' + Math.random().toString(36).slice(2) + Date.now().toString(36); }
+  function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+  function sr(k, fb) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : (fb !== undefined ? fb : null); } catch (e) { return fb !== undefined ? fb : null; } }
+  function sw(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function gc() { return Object.assign({}, DC, sr(K.cfg, {}) || {}); }
+  function gm() { return Object.assign({}, DM, sr(K.meta, {}) || {}); }
+  function gi() { return sr(K.items, []) || []; }
+  function gs() { var s = sr(K.sp, null); return s !== null ? s : DSP; }
+  function ga() { return sr(K.arch, []) || []; }
+  function pm(p) { sw(K.meta, Object.assign({}, gm(), p)); }
+
+  /* ── formatters ── */
+  function fT(v) { return v == null || isNaN(v) ? '--\u00b0C' : Math.round(v) + '\u00b0C'; }
+  function fP(v) { return v == null || isNaN(v) ? '--%' : Math.round(v) + '%'; }
+  function fK(v) { return v == null || isNaN(v) ? '-- km/h' : Math.round(v) + ' km/h'; }
+  function fM(v) { return v == null || isNaN(v) ? '-- mm' : Number(v).toFixed(1) + ' mm'; }
+  function fTime(ds, tz) { try { return new Intl.DateTimeFormat('en-CA', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: tz }).format(new Date(ds)); } catch (e) { return '--'; } }
+  function fDay(ds, tz)  { try { return new Intl.DateTimeFormat('en-CA', { weekday: 'short', month: 'short', day: 'numeric', timeZone: tz }).format(new Date(ds)); } catch (e) { return '--'; } }
+  function fStamp(d, tz) { try { return new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: tz }).format(d); } catch (e) { return '--'; } }
+  function wDir(d) { if (d == null || isNaN(d)) return '--'; return ['N','NE','E','SE','S','SW','W','NW'][Math.round(d / 45) % 8]; }
+  function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+  function avgN(arr, n, fb) { if (!Array.isArray(arr) || !arr.length) return fb || 0; return arr.slice(0, n).reduce(function (a, b) { return a + (Number(b) || 0); }, 0) / Math.min(n, arr.length); }
+
+  function wCode(c) {
+    var m = { 0:'Clear',1:'Mainly clear',2:'Partly cloudy',3:'Cloudy',45:'Fog',48:'Rime fog',51:'Light drizzle',53:'Drizzle',55:'Dense drizzle',56:'Freezing drizzle',57:'Dense freezing drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',66:'Freezing rain',67:'Heavy freezing rain',71:'Light snow',73:'Snow',75:'Heavy snow',77:'Snow grains',80:'Rain showers',81:'Rain showers',82:'Heavy showers',85:'Snow showers',86:'Heavy snow showers',95:'Thunderstorm',96:'Thunderstorm with hail',99:'Severe thunderstorm' };
+    return m[c] || 'Conditions changing';
+  }
+
+  function lvlCls(l) { return l === 'bad' ? 'tb' : l === 'warn' ? 'tw' : 'tg'; }
+  function lvlLbl(l) { return l === 'bad' ? 'Warning' : l === 'warn' ? 'Advisory' : 'Monitoring'; }
+
+  /* NOTE: renamed to scoreCls to avoid collision with local var 'scores' */
+  function scoreCls(n) { if (typeof n !== 'number') return ''; return n >= 8 ? 'sg' : n >= 5 ? 'sw' : 'sb'; }
+
+  function $t(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; }
+  function $h(id, v) { var e = document.getElementById(id); if (e) e.innerHTML = v; }
+
+  /* ── weather state ── */
+  var W = { loading: true, err: '', cur: null, hr: null, da: null, micro: [], ts: null };
+  var _rt = null, _ct = null;
+
+  /* ── partner tags ── */
+  var PTS = ['conditions','brief','impact','timeline','map','forecast','alerts','micro','partner'];
+
+  function rPTags() {
+    var sp = gs();
+    PTS.forEach(function (k, i) {
+      var el = document.getElementById('wc-pt-' + k);
+      if (!el) return;
+      if (!sp.length) { el.textContent = ''; return; }
+      var s = sp[i % sp.length];
+      if (!s || !s.name) { el.textContent = ''; return; }
+      el.innerHTML = s.url
+        ? 'Partner: <a href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.name) + '</a>'
+        : 'Partner: ' + esc(s.name);
+    });
+  }
+
+  function rSpotlight() {
+    var sp = gs(), w = document.getElementById('wc-partners');
+    if (!sp.length) { w.innerHTML = '<div class="card"><h3>Open Partner Slot</h3><p class="muted" style="font-size:13px;">Add partner cards from the admin console.</p></div>'; return; }
+    w.innerHTML = sp.map(function (s) {
+      return '<div class="card"><h3>' + esc(s.name) + '</h3><p class="muted" style="font-size:13px;">' + esc(s.desc || '') + '</p>'
+        + (s.url ? '<a class="btn-s" href="' + esc(s.url) + '" target="_blank" rel="noopener">Visit Partner</a>' : '') + '</div>';
+    }).join('');
+  }
+
+  /* ── API URLs ── */
+  function mainUrl(c) {
+    var p = new URLSearchParams({
+      latitude: c.lat, longitude: c.lon, timezone: c.tz,
+      current: 'temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,precipitation_probability,weather_code,wind_speed_10m,wind_direction_10m,is_day',
+      hourly:  'temperature_2m,apparent_temperature,relative_humidity_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index,visibility',
+      daily:   'weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset,wind_speed_10m_max,uv_index_max',
+      forecast_days: 7
+    });
+    return 'https://api.open-meteo.com/v1/forecast?' + p.toString();
+  }
+
+  function muUrl(lat, lon, tz) {
+    var p = new URLSearchParams({ latitude: lat, longitude: lon, timezone: tz, current: 'temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m' });
+    return 'https://api.open-meteo.com/v1/forecast?' + p.toString();
+  }
+
+  /* ── Windy map ── */
+  function setWindy(ov) {
+    var c = gc();
+    var wo = ({ radar:'radar', satellite:'satellite', wind:'wind', clouds:'clouds', rain:'rain', temp:'temp' })[ov] || 'radar';
+    document.getElementById('wc-mapframe').src = 'https://embed.windy.com/embed2.html?lat=' + c.lat + '&lon=' + c.lon
+      + '&detailLat=' + c.lat + '&detailLon=' + c.lon
+      + '&width=100%25&height=480&zoom=' + c.zoom
+      + '&level=surface&overlay=' + wo
+      + '&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=km%2Fh&metricTemp=%C2%B0C';
+    var sl = { radar:'Radar view active.', satellite:'Satellite view active.', wind:'Wind overlay active.', clouds:'Cloud cover overlay active.', rain:'Rain overlay active.', temp:'Temperature overlay active.' };
+    $t('wc-mapstatus', sl[ov] || 'Map active.');
+    pm({ ov: ov });
+    document.querySelectorAll('#wbn-wc .map-bar button').forEach(function (b) {
+      b.className = b.dataset.ov === ov ? 'tbtn-a' : 'tbtn-s';
+    });
+  }
+
+  /* ── fetch weather — Promise.all correctly chained ── */
+  function load(showLoad) {
+    if (showLoad) { W.loading = true; W.err = ''; rAll(); }
+    var c = gc();
+    var microPts = [
+      { name: 'Whalley',      lat: 49.1868, lon: -122.8480 },
+      { name: 'Cloverdale',   lat: 49.1000, lon: -122.7296 },
+      { name: 'South Surrey', lat: 49.0500, lon: -122.8200 },
+      { name: 'Newton',       lat: 49.1400, lon: -122.8500 }
+    ];
+
+    var mainFetch = fetch(mainUrl(c))
+      .then(function (r) { if (!r.ok) throw new Error('main fetch failed'); return r.json(); });
+
+    var microFetches = microPts.map(function (pt) {
+      return fetch(muUrl(pt.lat, pt.lon, c.tz))
+        .then(function (r) { if (!r.ok) throw new Error('micro fetch failed'); return r.json(); })
+        .then(function (j) { return Object.assign({}, pt, { data: j.current || null }); });
+    });
+
+    Promise.all([mainFetch].concat(microFetches))
+      .then(function (results) {
+        var main = results[0];
+        var micro = results.slice(1);
+        W = { loading: false, err: '', cur: main.current || null, hr: main.hourly || null, da: main.daily || null, micro: micro, ts: new Date() };
+        pm({ ts: W.ts.toISOString() });
+        rAll();
+        sched();
+      })
+      .catch(function (err) {
+        console.error('WeatherCast fetch error:', err);
+        W.loading = false;
+        W.err = 'Unable to load live weather data. Please try refreshing.';
+        rAll();
+        sched();
+      });
+  }
+
+  /* ── today index helpers ── */
+  function todayIdx() {
+    var h = W.hr;
+    if (!h || !h.time) return [];
+    var tz = gc().tz;
+    var key = new Intl.DateTimeFormat('sv-SE', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+    var idx = [];
+    h.time.forEach(function (t, i) {
+      if (new Intl.DateTimeFormat('sv-SE', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(t)) === key) idx.push(i);
+    });
+    return idx;
+  }
+
+  function next8() {
+    var h = W.hr;
+    if (!h || !h.time) return [];
+    var tz = gc().tz, now = new Date(), pts = [], idx = todayIdx();
+    for (var i = 0; i < idx.length; i++) {
+      var x = idx[i], t = new Date(h.time[x]);
+      if (t >= now && pts.length < 8) {
+        pts.push({ time: h.time[x], temp: h.temperature_2m ? h.temperature_2m[x] : null, pop: h.precipitation_probability ? (h.precipitation_probability[x] || 0) : 0, code: h.weather_code ? h.weather_code[x] : null, wind: h.wind_speed_10m ? (h.wind_speed_10m[x] || 0) : 0, label: fTime(h.time[x], tz) });
+      }
+    }
+    return pts;
+  }
+
+  /* ── weather brief ── */
+  function buildBrief() {
+    var cu = W.cur, da = W.da, ho = W.hr;
+    if (!cu || !da || !ho) return 'Loading forecast summary\u2026';
+    var hi = da.temperature_2m_max ? da.temperature_2m_max[0] : 0;
+    var lo = da.temperature_2m_min ? da.temperature_2m_min[0] : 0;
+    var rp = da.precipitation_probability_max ? (da.precipitation_probability_max[0] || 0) : 0;
+    var rs = da.precipitation_sum ? (da.precipitation_sum[0] || 0) : 0;
+    var mw = da.wind_speed_10m_max ? (da.wind_speed_10m_max[0] || 0) : 0;
+    var dh = todayIdx().filter(function (i) { return (ho.precipitation_probability ? (ho.precipitation_probability[i] || 0) : 0) < 25; }).length;
+    var wet = rp >= 60 || rs >= 3, mild = hi >= 11 && hi <= 18, wnd = mw >= 35;
+    return 'Surrey is tracking ' + wCode(cu.weather_code).toLowerCase() + ' conditions right now at ' + fT(cu.temperature_2m) + '. '
+      + 'Today looks like a ' + (wet ? 'higher-moisture' : 'fairly manageable') + ' pattern with a high near ' + Math.round(hi) + '\u00b0C and a low around ' + Math.round(lo) + '\u00b0C. '
+      + (wet ? 'Keep an eye on rain timing, especially for commuting, field work, and outdoor plans. ' : 'There should be workable outdoor windows through much of the day. ')
+      + (wnd ? 'Winds may become a factor, particularly near open roads and exposed areas of Surrey. ' : 'Wind is not the main disruption factor today. ')
+      + (mild && !wet ? 'Overall, this is one of the better Surrey weather days for outdoor activity, neighbourhood traffic, and event readiness.'
+        : dh >= 5 ? 'Overall, Surrey gets several usable hours for errands, site visits, and local events.'
+        : 'Overall, the day looks more stop-and-start, with fewer clean outdoor windows than usual.');
+  }
+
+  /* ── auto risk ── */
+  function buildRisk() {
+    var da = W.da, cu = W.cur;
+    if (!da || !cu) return { lv: 'good', lb: 'Monitoring', tx: 'Forecast thresholds are still loading.', mx: 'Rain, wind, and temperature triggers will appear here.' };
+    var rp = da.precipitation_probability_max ? (da.precipitation_probability_max[0] || 0) : 0;
+    var rs = da.precipitation_sum ? (da.precipitation_sum[0] || 0) : 0;
+    var mw = da.wind_speed_10m_max ? (da.wind_speed_10m_max[0] || 0) : 0;
+    var cc = cu.weather_code;
+    if (mw >= 55 || rs >= 15 || [95, 96, 99].indexOf(cc) !== -1) return { lv: 'bad',  lb: 'Warning',   tx: 'Weather disruption risk is elevated for Surrey today. Strong wind, heavy rain, or storm instability could affect travel and outdoor operations.', mx: 'High-impact thresholds triggered by wind, rainfall, or storm code.' };
+    if (mw >= 35 || rp >= 70 || rs >= 5)                         return { lv: 'warn', lb: 'Advisory',  tx: 'Conditions deserve extra attention today. Expect a more uneven operating day for commutes, job sites, and outdoor plans.', mx: 'Moderate thresholds triggered by rain probability, rainfall totals, or wind.' };
+    return { lv: 'good', lb: 'Monitoring', tx: 'No major automated weather trigger is showing right now for Surrey. Normal local caution still applies.', mx: 'No significant rain or wind threshold triggered at the moment.' };
+  }
+
+  /* ── impact scores — NOTE: variable named 'scores' not 'sc' to avoid collision with scoreCls() ── */
+  function buildScores() {
+    var cu = W.cur, da = W.da;
+    if (!cu || !da) return {
+      commute: { v: 'Loading\u2026', t: 'Assessing rain, visibility, and wind.' },
+      outdoor: { v: 'Loading\u2026', t: 'Checking comfort and dry windows.' },
+      marine:  { v: 'Loading\u2026', t: 'Looking at wind and coastal exposure.' },
+      air:     { v: 'Watch',        t: 'Local AQI feed can be layered in later.' },
+      event:   { v: 'Loading\u2026', t: 'Checking rain timing and temperature.' },
+      build:   { v: 'Loading\u2026', t: 'Watching rain and wind disruption risk.' }
+    };
+    var rp = da.precipitation_probability_max ? (da.precipitation_probability_max[0] || 0) : 0;
+    var rs = da.precipitation_sum ? (da.precipitation_sum[0] || 0) : 0;
+    var mw = da.wind_speed_10m_max ? (da.wind_speed_10m_max[0] || 0) : 0;
+    var hi = da.temperature_2m_max ? (da.temperature_2m_max[0] || 0) : 0;
+    var vs = avgN(W.hr ? W.hr.visibility : null, 6, 10000);
+    var cp = Math.abs(15 - hi);
+    var cn = clamp(Math.round(10 - (rp / 20) - (mw / 25) - (vs < 5000 ? 2 : 0)), 1, 10);
+    var on = clamp(Math.round(10 - (rp / 18) - (rs / 3)  - (cp / 8)),  1, 10);
+    var mn = clamp(Math.round(10 - (mw / 10) - (rp / 30)), 1, 10);
+    var en = clamp(Math.round(10 - (rp / 16) - (rs / 4) - (mw / 28)), 1, 10);
+    var bn = clamp(Math.round(10 - (rp / 16) - (rs / 3) - (mw / 22)), 1, 10);
+    return {
+      commute: { v: cn + '/10', n: cn, t: cn >= 8 ? 'Low disruption risk for most local routes.'           : cn >= 5 ? 'Some slowdown risk from rain or wind.'       : 'Higher travel friction likely in busy corridors.' },
+      outdoor: { v: on + '/10', n: on, t: on >= 8 ? 'Good day for general outdoor use.'                    : on >= 5 ? 'Usable with timing and backup plans.'        : 'More limited outdoor value today.' },
+      marine:  { v: mn + '/10', n: mn, t: mn >= 8 ? 'Relatively manageable coastal conditions.'            : mn >= 5 ? 'Waterfront caution advised.'                 : 'Coastal exposure risk is elevated.' },
+      air:     { v: 'Watch', t: 'Add AQHI integration later for full smoke and pollution monitoring.' },
+      event:   { v: en + '/10', n: en, t: en >= 8 ? 'Good readiness for local events.'                     : en >= 5 ? 'Moderate planning caution recommended.'      : 'Indoor backup or stronger planning advised.' },
+      build:   { v: bn + '/10', n: bn, t: bn >= 8 ? 'Field conditions look workable.'                      : bn >= 5 ? 'Possible weather drag on outdoor work.'      : 'Weather could materially slow site activity.' }
+    };
+  }
+
+  /* ── ticker ── */
+  function buildTicker() {
+    var it = [], cu = W.cur, da = W.da;
+    /* NOTE: renamed local variable to 'scr' to avoid shadowing scoreCls() */
+    var scr = buildScores(), bl = gi();
+    if (cu) { it.push(wCode(cu.weather_code) + ' now in Surrey at ' + fT(cu.temperature_2m)); it.push('Wind ' + fK(cu.wind_speed_10m) + ' from ' + wDir(cu.wind_direction_10m)); }
+    if (da) {
+      it.push('Rain risk today ' + fP(da.precipitation_probability_max ? da.precipitation_probability_max[0] : null));
+      it.push('High / Low ' + Math.round(da.temperature_2m_max ? da.temperature_2m_max[0] : 0) + '\u00b0 / ' + Math.round(da.temperature_2m_min ? da.temperature_2m_min[0] : 0) + '\u00b0');
+      it.push('Precipitation today ' + fM(da.precipitation_sum ? da.precipitation_sum[0] : 0));
+    }
+    if (scr.outdoor && scr.outdoor.v) it.push('Outdoor score ' + scr.outdoor.v);
+    if (scr.commute && scr.commute.v) it.push('Commute ' + scr.commute.v);
+    if (scr.event   && scr.event.v)   it.push('Event readiness ' + scr.event.v);
+    if (bl.length) it.unshift(lvlLbl(bl[0].level) + ': ' + bl[0].title);
+    var d = it.filter(function (v, i, a) { return a.indexOf(v) === i && v; });
+    return d.length ? d : ['Live Surrey weather update is loading\u2026'];
+  }
+
+  /* ── decision ── */
+  function buildDecision() {
+    var cu = W.cur, da = W.da, ho = W.hr;
+    if (!cu || !da || !ho) return { lead: 'Generating today\u2019s decision summary\u2026', acts: ['Loading daily guidance\u2026'], win: 'Checking the best time to be outside\u2026', com: 'Assessing likely travel friction\u2026', conf: 'Calculating forecast confidence\u2026' };
+    var pts = next8();
+    var rp = da.precipitation_probability_max ? (da.precipitation_probability_max[0] || 0) : 0;
+    var rs = da.precipitation_sum ? (da.precipitation_sum[0] || 0) : 0;
+    var mw = da.wind_speed_10m_max ? (da.wind_speed_10m_max[0] || 0) : 0;
+    var hi = da.temperature_2m_max ? (da.temperature_2m_max[0] || 0) : 0;
+    var lo = da.temperature_2m_min ? (da.temperature_2m_min[0] || 0) : 0;
+    var nc = wCode(cu.weather_code).toLowerCase();
+    var acts = [];
+    if (cu.temperature_2m < 14) acts.push('Bring a light jacket or outer layer for the cooler part of the day.');
+    else if (cu.temperature_2m > 24) acts.push('Dress lighter and plan hydration if you will be outside for longer stretches.');
+    else acts.push('Conditions are fairly manageable for normal day-to-day activity.');
+    if (rp >= 60 || rs >= 3) acts.push('Keep an umbrella or rain layer nearby in case showers arrive earlier than expected.');
+    else if (rp >= 35) acts.push('A flexible backup plan is smart if you have outdoor errands or appointments.');
+    else acts.push('Outdoor plans look more workable than usual with fewer weather interruptions expected.');
+    if (mw >= 35) acts.push('Use extra caution on exposed roads and near any unsecured outdoor items.');
+    if (hi >= 11 && hi <= 18 && rp < 50) acts.push('This is a relatively good day for errands, walks, and general outdoor use if you time it well.');
+    var gp = pts.filter(function (p) { return p.pop < 35 && p.wind < 28; });
+    var win = 'Usable time blocks are still being calculated.';
+    if (gp.length) win = 'Best outdoor window: ' + gp[0].label + ' to ' + gp[gp.length - 1].label + '.';
+    else if (pts.length) win = 'Outdoor timing looks more limited today. The cleanest window appears closest to ' + pts[0].label + '.';
+    var wetCodes = [61, 63, 65, 80, 81, 82], lw = null;
+    for (var i = 0; i < pts.length; i++) { if (pts[i].pop >= 55 || wetCodes.indexOf(pts[i].code) !== -1) { lw = pts[i]; break; } }
+    var lp = pts[Math.min(pts.length - 1, Math.max(0, pts.length - 2))];
+    var com = 'Commute conditions look fairly routine right now.';
+    if (lw) com = 'Watch the commute after ' + lw.label + ' \u2014 rain or heavier moisture may slow local travel.';
+    else if (lp && lp.wind >= 30) com = 'Later travel looks breezier than usual, especially in exposed corridors.';
+    else if (rp >= 40) com = 'Travel disruption risk looks moderate today, so a little extra time is sensible.';
+    var conf = 'Forecast confidence: High \u2014 pattern looks fairly stable today.';
+    if (rp >= 40 || mw >= 30) conf = 'Forecast confidence: Moderate \u2014 timing and intensity may shift through the day.';
+    if (rp >= 70 && mw >= 35) conf = 'Forecast confidence: Moderate to lower \u2014 conditions may evolve more unevenly than the early forecast suggests.';
+    var lead = 'Right now Surrey is seeing ' + nc + ' conditions at ' + fT(cu.temperature_2m) + ', with a day trending toward a high near ' + Math.round(hi) + '\u00b0C and a low around ' + Math.round(lo) + '\u00b0C.';
+    if (rp >= 60) lead = 'Surrey starts with ' + nc + ' conditions at ' + fT(cu.temperature_2m) + ', but later rain risk is elevated enough that timing your day will matter.';
+    else if (mw >= 35) lead = 'Surrey is running ' + nc + ' at ' + fT(cu.temperature_2m) + ', with wind likely to become a more noticeable factor later on.';
+    else if (hi >= 11 && hi <= 18 && rp < 40) lead = 'Surrey is off to a workable start at ' + fT(cu.temperature_2m) + ', and today looks fairly usable for normal outdoor plans if you take advantage of the better window.';
+    return { lead: lead, acts: acts, win: win, com: com, conf: conf };
+  }
+
+  /* ═══════════════ RENDER ═══════════════ */
+
+  function rHeader() {
+    var c = gc(), m = gm();
+    $t('wc-heroTitle',    c.title);
+    $t('wc-heroSubtitle', c.subtitle);
+    $t('wc-about',        c.explainer);
+    $t('wc-updated',      W.ts ? 'Updated: ' + fStamp(W.ts, c.tz) : 'Updated: --');
+    var ef = document.getElementById('wc-ecForecast'); if (ef) ef.href = c.fcUrl || '#';
+    var ea = document.getElementById('wc-ecAlerts');   if (ea) ea.href = c.alUrl || '#';
+    $t('wc-ticker', buildTicker().join('  \u25c6  ') + '  \u25c6  ');
+    $t('wc-footer', 'WBN Platform ' + m.ver + ' | WeatherCast\u2122 \u2013 Surrey | ' + new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: c.tz }).format(new Date()));
+  }
+
+  function rDecision() {
+    var d = buildDecision();
+    $t('wc-dlead',       d.lead);
+    $h('wc-dactions',    d.acts.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join(''));
+    $t('wc-dwindow',     d.win);
+    $t('wc-dcommute',    d.com);
+    $t('wc-dconfidence', d.conf);
+  }
+
+  function rCurrent() {
+    if (W.err) { $t('wc-cond', W.err); return; }
+    var cu = W.cur, da = W.da, c = gc();
+    if (!cu || !da) return;
+    $t('wc-temp',   fT(cu.temperature_2m));
+    $t('wc-cond',   wCode(cu.weather_code));
+    $t('wc-feels',  fT(cu.apparent_temperature));
+    $t('wc-humid',  'Humidity ' + fP(cu.relative_humidity_2m));
+    $t('wc-wind',   fK(cu.wind_speed_10m));
+    $t('wc-wdir',   'Direction ' + wDir(cu.wind_direction_10m));
+    $t('wc-rain',   fP(cu.precipitation_probability != null ? cu.precipitation_probability : (da.precipitation_probability_max ? da.precipitation_probability_max[0] : null)));
+    $t('wc-hilo',   'High / Low ' + Math.round(da.temperature_2m_max ? da.temperature_2m_max[0] : 0) + '\u00b0 / ' + Math.round(da.temperature_2m_min ? da.temperature_2m_min[0] : 0) + '\u00b0');
+    $t('wc-brief',  buildBrief());
+    $t('wc-sun',    fTime(da.sunrise ? da.sunrise[0] : null, c.tz) + ' / ' + fTime(da.sunset ? da.sunset[0] : null, c.tz));
+    $t('wc-uv',     String(Math.round(da.uv_index_max ? da.uv_index_max[0] : 0)));
+    $t('wc-precip', fM(da.precipitation_sum ? da.precipitation_sum[0] : 0));
+  }
+
+  function rImpact() {
+    /* NOTE: local variable named 'scores' (not 'sc') — no collision with scoreCls() */
+    var scores = buildScores();
+    var pairs = [['Commute','commute'],['Outdoor','outdoor'],['Marine','marine'],['Air','air'],['Event','event'],['Build','build']];
+    pairs.forEach(function (pr) {
+      var K = pr[0], k = pr[1], s = scores[k];
+      $t('wc-s' + K, s.v);
+      $t('wc-t' + K, s.t);
+      var el = document.getElementById('wc-s' + K);
+      if (el) el.className = 'iscore ' + (k === 'air' ? 'sw' : scoreCls(s.n));
+    });
+  }
+
+  function rTimeline() {
+    var w = document.getElementById('wc-timeline'), h = W.hr, c = gc();
+    if (!h || !h.time) { w.innerHTML = '<span class="loader">Loading timeline\u2026</span>'; return; }
+    var now = new Date(), pts = [];
+    for (var i = 0; i < h.time.length; i++) {
+      var t = new Date(h.time[i]);
+      if (t >= now && pts.length < 8) pts.push({ time: h.time[i], temp: h.temperature_2m ? h.temperature_2m[i] : null, pop: h.precipitation_probability ? h.precipitation_probability[i] : null, code: h.weather_code ? h.weather_code[i] : null, wind: h.wind_speed_10m ? h.wind_speed_10m[i] : null });
+    }
+    w.innerHTML = pts.map(function (p) {
+      return '<div class="card ti">'
+        + '<span class="xs mono">' + esc(fTime(p.time, c.tz)) + '</span>'
+        + '<span style="font-size:17px;font-weight:700;margin:4px 0;display:block;color:#123246;">' + esc(fT(p.temp)) + '</span>'
+        + '<span class="xs">' + esc(wCode(p.code)) + '</span>'
+        + '<span class="xs" style="margin-top:4px;">Rain ' + esc(fP(p.pop)) + '</span>'
+        + '<span class="xs">Wind ' + esc(fK(p.wind)) + '</span>'
+        + '</div>';
+    }).join('');
+  }
+
+  function rForecast() {
+    var w = document.getElementById('wc-forecast'), da = W.da, c = gc();
+    if (!da || !da.time) { w.innerHTML = '<span class="loader">Loading 7-day forecast\u2026</span>'; return; }
+    w.innerHTML = da.time.map(function (ds, i) {
+      return '<div class="card">'
+        + '<span class="fday-name">' + esc(fDay(ds, c.tz)) + '</span>'
+        + '<span class="xs">' + esc(wCode(da.weather_code ? da.weather_code[i] : null)) + '</span>'
+        + '<span class="fday-temp">' + Math.round(da.temperature_2m_max ? da.temperature_2m_max[i] : 0) + '\u00b0 / ' + Math.round(da.temperature_2m_min ? da.temperature_2m_min[i] : 0) + '\u00b0</span>'
+        + '<span class="xs">Rain risk ' + esc(fP(da.precipitation_probability_max ? da.precipitation_probability_max[i] : null)) + '</span>'
+        + '<span class="xs">Rain ' + esc(fM(da.precipitation_sum ? da.precipitation_sum[i] : 0)) + '</span>'
+        + '<span class="xs">Wind max ' + esc(fK(da.wind_speed_10m_max ? da.wind_speed_10m_max[i] : null)) + '</span>'
+        + '</div>';
+    }).join('');
+  }
+
+  function rAlerts() {
+    var r = buildRisk(), bl = gi();
+    var at = document.getElementById('wc-aAutoTag');
+    at.className = 'atag ' + lvlCls(r.lv); at.textContent = r.lb;
+    $t('wc-aAutoText', r.tx); $t('wc-aAutoMeta', r.mx);
+    var mt = document.getElementById('wc-aManTag'), mp = document.getElementById('wc-aManText');
+    if (bl.length) { mt.className = 'atag ' + lvlCls(bl[0].level); mt.textContent = lvlLbl(bl[0].level); mp.textContent = bl[0].title + ': ' + bl[0].text; }
+    else { mt.className = 'atag tg'; mt.textContent = 'Official Links Ready'; mp.textContent = 'Use the buttons below to open official forecast sources or post a local admin bulletin.'; }
+  }
+
+  function rMicro() {
+    var w = document.getElementById('wc-micro');
+    if (!W.micro || !W.micro.length) { w.innerHTML = '<span class="loader">Loading neighbourhood conditions\u2026</span>'; return; }
+    w.innerHTML = W.micro.map(function (pt) {
+      var d = pt.data || {};
+      return '<div class="card"><h3>' + esc(pt.name) + '</h3>'
+        + '<span style="font-size:20px;font-weight:700;margin:6px 0;display:block;color:#123246;">' + esc(fT(d.temperature_2m)) + '</span>'
+        + '<span class="xs">' + esc(wCode(d.weather_code)) + '</span>'
+        + '<span class="xs" style="margin-top:5px;">Wind ' + esc(fK(d.wind_speed_10m)) + '</span>'
+        + '<span class="xs">Humidity ' + esc(fP(d.relative_humidity_2m)) + '</span></div>';
+    }).join('');
+  }
+
+  function rAdmin() {
+    var c = gc(), open = sr(K.admin, false);
+    document.getElementById('wc-adminShell').classList.toggle('open', !!open);
+    document.getElementById('wc-setTitle').value    = c.title;
+    document.getElementById('wc-setSubtitle').value = c.subtitle;
+    document.getElementById('wc-setExplainer').value = c.explainer;
+    document.getElementById('wc-setLoc').value      = c.loc;
+    document.getElementById('wc-setTZ').value       = c.tz;
+    document.getElementById('wc-setLat').value      = c.lat;
+    document.getElementById('wc-setLon').value      = c.lon;
+    document.getElementById('wc-setZoom').value     = c.zoom;
+    document.getElementById('wc-setRefresh').value  = c.refresh;
+    document.getElementById('wc-setFcUrl').value    = c.fcUrl;
+    document.getElementById('wc-setAlUrl').value    = c.alUrl;
+    document.getElementById('wc-setPass').value     = c.pass;
+    var bl = gi(), ar = ga(), sp = gs();
+    $h('wc-bulletinList', bl.length ? bl.map(function (it, i) {
+      return '<div class="lrow"><strong>' + esc(it.title) + '</strong><span class="xs">' + esc(lvlLbl(it.level)) + ' \u2022 ' + esc(it.scope || 'All Surrey') + '</span>'
+        + '<p class="muted" style="font-size:12px;margin:5px 0;">' + esc(it.text) + '</p>'
+        + '<div class="row-acts"><button class="mbtn" data-a="up" data-i="' + i + '">Up</button><button class="mbtn" data-a="dn" data-i="' + i + '">Down</button>'
+        + '<button class="mbtn" data-a="edit" data-id="' + esc(it.id) + '">Edit</button><button class="mbtn" data-a="arch" data-id="' + esc(it.id) + '">Archive</button>'
+        + '<button class="mbtn" data-a="del" data-id="' + esc(it.id) + '">Delete</button></div></div>';
+    }).join('') : '<span class="sm">No active bulletins.</span>');
+    $h('wc-archiveList', ar.length ? ar.map(function (it) {
+      return '<div class="lrow"><strong>' + esc(it.title) + '</strong><p class="muted" style="font-size:12px;margin:5px 0;">' + esc(it.text) + '</p>'
+        + '<div class="row-acts"><button class="mbtn" data-a="restore" data-id="' + esc(it.id) + '">Restore</button>'
+        + '<button class="mbtn" data-a="del-ar" data-id="' + esc(it.id) + '">Delete</button></div></div>';
+    }).join('') : '<span class="sm">No archived bulletins.</span>');
+    $h('wc-partnerList', sp.length ? sp.map(function (pt, i) {
+      return '<div class="lrow"><strong>' + esc(pt.name) + '</strong><span class="xs">' + esc(pt.url || 'No URL') + '</span>'
+        + '<div class="row-acts"><button class="mbtn" data-a="pup" data-i="' + i + '">Up</button><button class="mbtn" data-a="pdn" data-i="' + i + '">Down</button>'
+        + '<button class="mbtn" data-a="pedit" data-id="' + esc(pt.id) + '">Edit</button><button class="mbtn" data-a="pdel" data-id="' + esc(pt.id) + '">Delete</button></div></div>';
+    }).join('') : '<span class="sm">No partners yet.</span>');
+  }
+
+  function rAll() {
+    rHeader(); rDecision(); rCurrent(); rImpact();
+    rTimeline(); rForecast(); rAlerts(); rMicro();
+    rPTags(); rSpotlight(); rAdmin();
+    setWindy(gm().ov || 'radar');
+  }
+
+  /* ═══════════════ ACTIONS ═══════════════ */
+
+  function addBulletin() {
+    var ti = document.getElementById('wc-bTitle').value.trim(), tx = document.getElementById('wc-bText').value.trim(), lv = document.getElementById('wc-bLevel').value, sc = document.getElementById('wc-bScope').value.trim();
+    if (!ti || !tx) { alert('Add both bulletin title and copy.'); return; }
+    var it = gi(); it.unshift({ id: uid(), title: ti, text: tx, level: lv, scope: sc, createdAt: new Date().toISOString() });
+    sw(K.items, it); pm({ lastEdited: new Date().toISOString() });
+    document.getElementById('wc-bTitle').value = ''; document.getElementById('wc-bText').value = ''; document.getElementById('wc-bScope').value = ''; document.getElementById('wc-bLevel').value = 'good';
+    rAll();
+  }
+  function editBulletin(id) {
+    var it = gi(), x = it.find(function (a) { return a.id === id; }); if (!x) return;
+    var nt = prompt('Edit title:', x.title); if (nt === null) return;
+    var nx = prompt('Edit copy:', x.text);   if (nx === null) return;
+    var ns = prompt('Edit scope:', x.scope || ''); if (ns === null) return;
+    var nl = prompt('Level: good/warn/bad', x.level); if (nl === null) return;
+    x.title = nt.trim() || x.title; x.text = nx.trim() || x.text; x.scope = ns.trim();
+    x.level = ['good','warn','bad'].indexOf(nl.trim()) !== -1 ? nl.trim() : x.level;
+    sw(K.items, it); pm({ lastEdited: new Date().toISOString() }); rAll();
+  }
+  function delBulletin(id)  { sw(K.items, gi().filter(function (x) { return x.id !== id; })); pm({ lastEdited: new Date().toISOString() }); rAll(); }
+  function archBulletin(id) { var it = gi(), ar = ga(), i = it.findIndex(function (x) { return x.id === id; }); if (i === -1) return; ar.unshift(it.splice(i, 1)[0]); sw(K.items, it); sw(K.arch, ar); pm({ lastEdited: new Date().toISOString() }); rAll(); }
+  function restBulletin(id) { var it = gi(), ar = ga(), i = ar.findIndex(function (x) { return x.id === id; }); if (i === -1) return; it.unshift(ar.splice(i, 1)[0]); sw(K.items, it); sw(K.arch, ar); pm({ lastEdited: new Date().toISOString() }); rAll(); }
+  function delArch(id)      { sw(K.arch, ga().filter(function (x) { return x.id !== id; })); pm({ lastEdited: new Date().toISOString() }); rAll(); }
+  function moveItem(i, d)   { var it = gi(), j = i + d; if (j < 0 || j >= it.length) return; var tmp = it[j]; it[j] = it[i]; it[i] = tmp; sw(K.items, it); rAll(); }
+
+  function addPartner() {
+    var n = document.getElementById('wc-pName').value.trim(), d = document.getElementById('wc-pDesc').value.trim(), u = document.getElementById('wc-pUrl').value.trim();
+    if (!n) { alert('Add partner name.'); return; }
+    var sp = gs(); sp.push({ id: uid(), name: n, desc: d, url: u }); sw(K.sp, sp); pm({ lastEdited: new Date().toISOString() });
+    document.getElementById('wc-pName').value = ''; document.getElementById('wc-pDesc').value = ''; document.getElementById('wc-pUrl').value = '';
+    rAll();
+  }
+  function editPartner(id) {
+    var sp = gs(), p = sp.find(function (x) { return x.id === id; }); if (!p) return;
+    var nn = prompt('Edit name:', p.name);    if (nn === null) return;
+    var nd = prompt('Edit desc:', p.desc || ''); if (nd === null) return;
+    var nu = prompt('Edit URL:',  p.url  || ''); if (nu === null) return;
+    p.name = nn.trim() || p.name; p.desc = nd.trim(); p.url = nu.trim();
+    sw(K.sp, sp); pm({ lastEdited: new Date().toISOString() }); rAll();
+  }
+  function delPartner(id)     { sw(K.sp, gs().filter(function (x) { return x.id !== id; })); pm({ lastEdited: new Date().toISOString() }); rAll(); }
+  function movePartner(i, d)  { var sp = gs(), j = i + d; if (j < 0 || j >= sp.length) return; var tmp = sp[j]; sp[j] = sp[i]; sp[i] = tmp; sw(K.sp, sp); rAll(); }
+
+  function saveSettings() {
+    sw(K.cfg, { title: document.getElementById('wc-setTitle').value.trim() || DC.title, subtitle: document.getElementById('wc-setSubtitle').value.trim() || DC.subtitle, explainer: document.getElementById('wc-setExplainer').value.trim() || DC.explainer, loc: document.getElementById('wc-setLoc').value.trim() || DC.loc, tz: document.getElementById('wc-setTZ').value.trim() || DC.tz, lat: Number(document.getElementById('wc-setLat').value) || DC.lat, lon: Number(document.getElementById('wc-setLon').value) || DC.lon, zoom: Number(document.getElementById('wc-setZoom').value) || DC.zoom, refresh: Number(document.getElementById('wc-setRefresh').value) || DC.refresh, fcUrl: document.getElementById('wc-setFcUrl').value.trim() || DC.fcUrl, alUrl: document.getElementById('wc-setAlUrl').value.trim() || DC.alUrl, pass: document.getElementById('wc-setPass').value.trim() || DC.pass });
+    pm({ lastEdited: new Date().toISOString() }); rAll(); load(true);
+  }
+  function unlockAdmin() { var pwd = document.getElementById('wc-pwd').value; if (pwd === gc().pass) { sw(K.admin, true); rAll(); document.getElementById('wc-adminShell').scrollIntoView({ behavior: 'smooth', block: 'start' }); } else alert('Incorrect password.'); }
+  function lockAdmin()   { sw(K.admin, false); rAll(); document.getElementById('wc-pwd').value = ''; }
+  function doExport()    { var blob = new Blob([JSON.stringify({ items: gi(), sponsors: gs(), archive: ga(), settings: gc(), meta: gm(), exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' }); var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'wbn-weathercast-surrey-backup.json'; a.click(); }
+  function doImport(json){ try { var d = JSON.parse(json); if (d.items) sw(K.items, d.items); if (d.sponsors) sw(K.sp, d.sponsors); if (d.archive) sw(K.arch, d.archive); if (d.settings) sw(K.cfg, Object.assign({}, DC, d.settings)); if (d.meta) sw(K.meta, Object.assign({}, DM, d.meta)); rAll(); load(true); alert('Backup imported.'); } catch (e) { alert('Invalid backup file.'); } }
+
+  function sched() {
+    var c = gc(), ms = Math.max(1, Number(c.refresh || 15)) * 60 * 1000, nxt = Date.now() + ms;
+    if (_rt) clearTimeout(_rt); if (_ct) clearInterval(_ct);
+    _rt = setTimeout(function () { load(false); }, ms);
+    _ct = setInterval(function () {
+      var diff = nxt - Date.now();
+      if (diff <= 0) { $t('wc-refresh', 'Refreshing now\u2026'); clearInterval(_ct); return; }
+      var s = Math.floor(diff / 1000);
+      $t('wc-refresh', 'Refreshing in ' + String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'));
+    }, 1000);
+  }
+
+  /* ═══════════════ EVENT WIRING ═══════════════ */
+  document.getElementById('wc-unlock').addEventListener('click', unlockAdmin);
+  document.getElementById('wc-lock').addEventListener('click', lockAdmin);
+  document.getElementById('wc-saveSettings').addEventListener('click', saveSettings);
+  document.getElementById('wc-addBulletin').addEventListener('click', addBulletin);
+  document.getElementById('wc-addPartner').addEventListener('click', addPartner);
+  document.getElementById('wc-export').addEventListener('click', doExport);
+  document.getElementById('wc-pwd').addEventListener('keydown', function (e) { if (e.key === 'Enter') unlockAdmin(); });
+  document.getElementById('wc-import').addEventListener('change', function (e) { var f = e.target.files && e.target.files[0]; if (!f) return; var r = new FileReader(); r.onload = function () { doImport(r.result); }; r.readAsText(f); });
+  document.getElementById('wc-mapbar').addEventListener('click', function (e) { var b = e.target.closest('[data-ov]'); if (b) setWindy(b.dataset.ov); });
+  document.getElementById('wc-bulletinList').addEventListener('click', function (e) { var b = e.target.closest('[data-a]'); if (!b) return; var a = b.dataset.a, id = b.dataset.id, i = Number(b.dataset.i); if (a === 'up') moveItem(i, -1); if (a === 'dn') moveItem(i, 1); if (a === 'edit') editBulletin(id); if (a === 'arch') archBulletin(id); if (a === 'del') delBulletin(id); });
+  document.getElementById('wc-archiveList').addEventListener('click', function (e) { var b = e.target.closest('[data-a]'); if (!b) return; if (b.dataset.a === 'restore') restBulletin(b.dataset.id); if (b.dataset.a === 'del-ar') delArch(b.dataset.id); });
+  document.getElementById('wc-partnerList').addEventListener('click', function (e) { var b = e.target.closest('[data-a]'); if (!b) return; var a = b.dataset.a, id = b.dataset.id, i = Number(b.dataset.i); if (a === 'pup') movePartner(i, -1); if (a === 'pdn') movePartner(i, 1); if (a === 'pedit') editPartner(id); if (a === 'pdel') delPartner(id); });
+
+  /* ── init ── */
+  rAll();
+  load(true);
+
+})();
+</script>
